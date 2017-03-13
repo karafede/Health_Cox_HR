@@ -27,8 +27,9 @@ health_data <- health_data %>%
          Date = date(Date),
          year = year(Date))
 
-health_data <- health_data %>%
-  filter(year == "2013") 
+# health_data <- health_data %>%
+#   filter(year == c("2013"))
+
 
 health_data <- health_data %>%
   filter(Gender %in% c("Male", "Female"))
@@ -59,126 +60,219 @@ health_data$bin  <- as.numeric(health_data$bin)
 ### make class of Age bins -----------
 ######################################
 
+## function to generate classes of age bins---
 
-age_bin <- NULL
-
-# health_data <- health_data[1:1000,]
-
-for (i in 1:nrow(health_data)) {
+age_bins_fun <- function(federico){
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] == 0)
-  # AGE_BIN = as.character("00")
+  if (!is.na(federico) & federico == 0)
     AGE_BIN = 1
-
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] < 4 & health_data$Age[i] > 1)
-  # AGE_BIN = as.character("01-04 years")
+  
+  
+  if (!is.na(federico) & federico < 4 & federico > 1)
     AGE_BIN = 2
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] < 9 & health_data$Age[i] > 5)
-  #  AGE_BIN = as.character("05-09 years")
+  if (!is.na(federico) & federico < 9 & federico > 5)
     AGE_BIN = 3
-    
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 14 & health_data$Age[i] >= 10)
-  #  AGE_BIN = as.character("10-14 years")
-  AGE_BIN = 4
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 19 & health_data$Age[i] >= 15)
-    #  AGE_BIN = as.character("15-19 years")
+  if (!is.na(federico) & federico <= 14 & federico >= 10)
+    AGE_BIN = 4
+  
+  if (!is.na(federico) & federico <= 19 & federico >= 15)
     AGE_BIN = 5
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 24 & health_data$Age[i] >= 20)
-    #  AGE_BIN = as.character("20-24 years")
+  if (!is.na(federico) & federico <= 24 & federico >= 20)
     AGE_BIN = 6
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 29 & health_data$Age[i] >= 25)
-    #  AGE_BIN = as.character("25-29 years")
+  if (!is.na(federico) & federico <= 29 & federico >= 25)
     AGE_BIN = 7
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 34 & health_data$Age[i] >= 30)
-    #  AGE_BIN = as.character("30-34 years")
+  if (!is.na(federico) & federico <= 34 & federico >= 30)
     AGE_BIN = 8
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 39 & health_data$Age[i] >= 35)
-    #  AGE_BIN = as.character("39-35 years")
+  if (!is.na(federico) & federico <= 39 & federico >= 35)
     AGE_BIN = 9
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 44 & health_data$Age[i] >= 40)
-    #  AGE_BIN = as.character("40-44 years")
+  if (!is.na(federico) & federico <= 44 & federico >= 40)
     AGE_BIN = 10
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 49 & health_data$Age[i] >= 45)
-    #  AGE_BIN = as.character("45-49 years")
+  if (!is.na(federico) & federico <= 49 & federico >= 45)
     AGE_BIN = 11
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 54 & health_data$Age[i] >= 50)
-    #  AGE_BIN = as.character("50-54 years")
+  if (!is.na(federico) & federico <= 54 & federico >= 50)
     AGE_BIN = 12
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 59 & health_data$Age[i] >= 55)
-    #  AGE_BIN = as.character("55-59 years")
+  if (!is.na(federico) & federico <= 59 & federico >= 55)
     AGE_BIN = 13
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 64 & health_data$Age[i] >= 60)
-    #  AGE_BIN = as.character("60-64 years")
+  if (!is.na(federico) & federico <= 64 & federico >= 60)
     AGE_BIN = 14
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 69 & health_data$Age[i] >= 65)
-    #  AGE_BIN = as.character("65-69 years")
+  if (!is.na(federico) & federico <= 69 & federico >= 65)
     AGE_BIN = 15
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 74 & health_data$Age[i] >= 70)
-    #  AGE_BIN = as.character("70-74 years")
+  if (!is.na(federico) & federico <= 74 & federico >= 70)
     AGE_BIN = 16
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 79 & health_data$Age[i] >= 75)
-    #  AGE_BIN = as.character("75-79 years")
+  if (!is.na(federico) & federico <= 79 & federico >= 75)
     AGE_BIN = 17
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 84 & health_data$Age[i] >= 80)
-    #  AGE_BIN = as.character("80-84 years")
+  if (!is.na(federico) & federico <= 84 & federico >= 80)
     AGE_BIN = 18
   
-  if (!is.na(health_data$Age[i]) & health_data$Age[i] >= 85)
-    #  AGE_BIN = as.character(">85 years")
+  if (!is.na(federico) & federico >= 85)
     AGE_BIN = 19
   
+  
 
-  print(i)
-  age_bin <- rbind(AGE_BIN, age_bin) 
-  age_bin <- as.vector(age_bin)
-  age_bin <- as.data.frame(age_bin)
-
+  if(is.na(federico))
+    AGE_BIN = NA
+  if(exists("AGE_BIN")){
+    
+  }else {
+    AGE_BIN=NA
   }
+  return(AGE_BIN)
+  
+}
 
-  age_bin <- age_bin %>% 
-    arrange(-row_number())
 
-  str(age_bin)
-  age_bin$age_bin <- as.factor(age_bin$age_bin)
+
+#################
+### AGE BINS ####
+################# 
+
+age_data <- as.vector(health_data$Age)
+
+# calculate Air Quality index for O3
+AGE_BIN <- lapply(age_data, age_bins_fun)
+AGE_BIN <- as.numeric(AGE_BIN)
+
+AGE_BIN <- as.data.frame(AGE_BIN)
+
+health_data <- cbind(health_data, AGE_BIN)
+
+
+# age_bin <- NULL
+# 
+# # health_data <- health_data[1:1000,]
+# 
+# for (i in 1:nrow(health_data)) {
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] == 0)
+#   # AGE_BIN = as.character("00")
+#     AGE_BIN = 1
+# 
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] < 4 & health_data$Age[i] > 1)
+#   # AGE_BIN = as.character("01-04 years")
+#     AGE_BIN = 2
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] < 9 & health_data$Age[i] > 5)
+#   #  AGE_BIN = as.character("05-09 years")
+#     AGE_BIN = 3
+#     
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 14 & health_data$Age[i] >= 10)
+#   #  AGE_BIN = as.character("10-14 years")
+#   AGE_BIN = 4
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 19 & health_data$Age[i] >= 15)
+#     #  AGE_BIN = as.character("15-19 years")
+#     AGE_BIN = 5
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 24 & health_data$Age[i] >= 20)
+#     #  AGE_BIN = as.character("20-24 years")
+#     AGE_BIN = 6
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 29 & health_data$Age[i] >= 25)
+#     #  AGE_BIN = as.character("25-29 years")
+#     AGE_BIN = 7
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 34 & health_data$Age[i] >= 30)
+#     #  AGE_BIN = as.character("30-34 years")
+#     AGE_BIN = 8
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 39 & health_data$Age[i] >= 35)
+#     #  AGE_BIN = as.character("39-35 years")
+#     AGE_BIN = 9
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 44 & health_data$Age[i] >= 40)
+#     #  AGE_BIN = as.character("40-44 years")
+#     AGE_BIN = 10
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 49 & health_data$Age[i] >= 45)
+#     #  AGE_BIN = as.character("45-49 years")
+#     AGE_BIN = 11
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 54 & health_data$Age[i] >= 50)
+#     #  AGE_BIN = as.character("50-54 years")
+#     AGE_BIN = 12
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 59 & health_data$Age[i] >= 55)
+#     #  AGE_BIN = as.character("55-59 years")
+#     AGE_BIN = 13
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 64 & health_data$Age[i] >= 60)
+#     #  AGE_BIN = as.character("60-64 years")
+#     AGE_BIN = 14
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 69 & health_data$Age[i] >= 65)
+#     #  AGE_BIN = as.character("65-69 years")
+#     AGE_BIN = 15
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 74 & health_data$Age[i] >= 70)
+#     #  AGE_BIN = as.character("70-74 years")
+#     AGE_BIN = 16
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 79 & health_data$Age[i] >= 75)
+#     #  AGE_BIN = as.character("75-79 years")
+#     AGE_BIN = 17
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 84 & health_data$Age[i] >= 80)
+#     #  AGE_BIN = as.character("80-84 years")
+#     AGE_BIN = 18
+#   
+#   if (!is.na(health_data$Age[i]) & health_data$Age[i] >= 85)
+#     #  AGE_BIN = as.character(">85 years")
+#     AGE_BIN = 19
+#   
+# 
+#   print(i)
+#   age_bin <- rbind(AGE_BIN, age_bin) 
+#   age_bin <- as.vector(age_bin)
+#   age_bin <- as.data.frame(age_bin)
+# 
+#   }
+# 
+#   age_bin <- age_bin %>% 
+#     arrange(-row_number())
+# 
+   str(health_data)
+   health_data$AGE_BIN <- as.factor(health_data$AGE_BIN)
+   
+   str(health_data)
   
 # rename factor with names------------
-  levels(age_bin$age_bin) <- gsub("^1$","00", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^2$","01-04 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^3$","05-09 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^4$","10-14 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^5$","15-19 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^6$","20-24 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^7$","25-29 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^8$","30-34 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^9$","35-39 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^10$","40-44 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^11$","45-49 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^12$","50-54 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^13$","55-59 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^14$","60-64 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^15$","65-69 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^16$","70-74 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^17$","75-79 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^18$","80-84 years", levels(age_bin$age_bin))
-  levels(age_bin$age_bin ) <- gsub("^19$","> 85 years", levels(age_bin$age_bin))
+  levels(health_data$AGE_BIN) <- gsub("^1$","00", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^2$","01-04", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^3$","05-09", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^4$","10-14", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^5$","15-19", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^6$","20-24", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^7$","25-29", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^8$","30-34", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^9$","35-39", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^10$","40-44", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^11$","45-49", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^12$","50-54", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^13$","55-59", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^14$","60-64", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^15$","65-69", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^16$","70-74", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^17$","75-79", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^18$","80-84", levels(health_data$AGE_BIN))
+  levels(health_data$AGE_BIN) <- gsub("^19$","85-up", levels(health_data$AGE_BIN))
   
 # bind age bins with health data again with age bins
-  health_data <- cbind(health_data, age_bin)
+ # health_data <- cbind(health_data, age_bin)
   str(health_data)
   
   # save health data------------------------------------------------
@@ -192,7 +286,7 @@ write_csv(health_data, "health_data_age_bins.csv")
 health_data <- read_csv("health_data_age_bins.csv")
   str(health_data)
   
-  health_data$age_bin <- as.factor(health_data$age_bin)
+  health_data$AGE_BIN <- as.factor(health_data$AGE_BIN)
   health_data$Gender <- as.factor(health_data$Gender)
   
   str(health_data)
@@ -201,7 +295,7 @@ health_data <- read_csv("health_data_age_bins.csv")
 health_data <- health_data %>%
   group_by(Date,
            Gender,
-           age_bin) %>%
+           AGE_BIN) %>%
   summarise(sum_patients = sum(bin, na.rm = TRUE))
 
 
@@ -278,16 +372,25 @@ AQ_data_PM10 <- na.omit(AQ_data_PM10)
 
 ## load datellite data for PM2.5 from MODIS------------------------------------
 
-PM25_AOD <- read_csv("PM25_from_AOD_MODIS.csv")
+# PM25_AOD <- read_csv("PM25_from_AOD_MODIS.csv")
+PM25_AOD <- read_csv("PM10_PM25_2011_2016_MODIS.csv")
 
-PM25_AOD_2013 <- PM25_AOD %>%
-  filter(Date < "2014-01-01" & Date > "2013-01-01") %>%
-group_by(Date) %>%
+# PM25_AOD_2013 <- PM25_AOD %>%
+#   filter(Date < "2014-01-01" & Date > "2013-01-01") %>%
+# group_by(Date) %>%
+#   summarise(mean_PM25 = mean(AOD_PM25, na.rm = TRUE))
+
+PM25_AOD <- PM25_AOD %>%
+  group_by(Date) %>%
   summarise(mean_PM25 = mean(AOD_PM25, na.rm = TRUE))
 
 # join PM2.5 data and health data-----
 
-AQ_data_PM25 <- PM25_AOD_2013 %>%
+# AQ_data_PM25 <- PM25_AOD_2013 %>%
+#   left_join(health_data, "Date")
+# AQ_data_PM25[sapply(AQ_data_PM25,is.na)] = NA 
+
+AQ_data_PM25 <- PM25_AOD %>%
   left_join(health_data, "Date")
 AQ_data_PM25[sapply(AQ_data_PM25,is.na)] = NA 
 
@@ -433,20 +536,35 @@ ddist <- datadist(AQ_data_PM25)
 options(datadist="ddist")
 
 # RCS = restricted cubic spline----log
-rms_fit_PM25 <- cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Gender, data = AQ_data_PM25, x=T, y=T)
+# rms_fit_PM25 <- cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Gender, data = AQ_data_PM25, x=T, y=T)
+ rms_fit_PM25 <- cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Gender + AGE_BIN, data = AQ_data_PM25, x=T, y=T)
+
 rms_fit_PM25
 summary(rms_fit_PM25)
+
+## plot ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+# jpeg('D:/R_processing/plots/response_curve_PM25.jpg',
+#      quality = 100, bg = "white", res = 300, width = 12, height = 9, units = "in")
+# par(mar=c(4, 10, 9, 2) + 0.3)
+# oldpar <- par(las=1)
 
 
 termplot2(rms_fit_PM25, se=T, rug.type="density", rug=T, density.proportion=.05,
           se.type="polygon",  yscale="exponential", log="y",
-          ylab=rep("Hazard Ratio", times=2),
-          main=rep("response curve", times=2),
+          ylab=rep("Hazard Ratio", times=3),
+         # cex.lab=1.5, cex.axis=2,  cex.main = 2, # ylim = c(-0.2, 0.6) ,#ylim = c(-0.2, 0.4), 
+          cex.lab=1.5, cex.axis=1,  cex.main = 2, las = 2, font=2,
+      #  xlab = c("conc", "Gender"),
+          xlab = c((expression(paste(PM[2.5], " daily concentration (µg/",m^3, ")"))),"Gender"),
+          main=  ("Health Response Curve for PM2.5"),
           col.se=rgb(.2,.2,1,.4), col.term="black")
-abline(h=1, col="red", lty=3)
+abline(h=1, col="red", lty=3, lwd=3)
+abline(v= 37.90943, col="red", lty=3, lwd=3)
 
+# par(oldpar)
+# dev.off()
 
-# locator()
 
 
 # # RCS = restricted cubic spline----no log
@@ -487,13 +605,28 @@ terms <- if (is.null(terms))
 tms <- as.matrix(if (se)
   terms$fitted
   else terms)
-tms <- exp(tms)
+tms <- exp(tms)  # meake data exponential
+tms <- as.data.frame(tms)
+colnames(tms) <- c("HR", "Gender", "AGE_BIN")
+AAA <- cbind(AQ_data_PM25$mean_PM25, tms)
+# look where HR is > 1
+
+AAA <- AAA %>%
+  filter(HR > 1)
+
+# look at the position of RR ~ 1
+
+abline(v= 37.90943, col="red", lty=3, lwd=3)
+
+
 
 # confidence interval (CI) (all data)
 
-   tt <- 2 * terms$se.fit[,]
+  tt <- 2 * terms$se.fit[,]
   upper_ci <- tms + tt
   lower_ci <- tms - tt
+  
+  
   # upper_ci <- exp(upper_ci)
   # lower_ci <- exp(lower_ci)
 
@@ -512,27 +645,22 @@ tms <- exp(tms)
 #####################################################################
 
 # calculate postion of the intercept..and therefore the limit value
-predict_PM25 <- rms_fit_PM25$x
-HAZARD_RATIO <- rms_fit_PM25$linear.predictors
-HAZARD_RATIO_res <- rms_fit_PM25$residuals
-data <- cbind(predict_PM25[,1], HAZARD_RATIO)
+# predict_PM25 <- rms_fit_PM25$x
+# HAZARD_RATIO <- rms_fit_PM25$linear.predictors
+# HAZARD_RATIO_res <- rms_fit_PM25$residuals
+# data <- cbind(predict_PM25[,1], HAZARD_RATIO)
+  
 # combine the data together-----------------------------------------
-data <- as.data.frame(data)
+# data <- as.data.frame(data)
+
 
 
 # have a look a the data with HR > 0
-data <- data %>%
- filter(HAZARD_RATIO >= 0)
+# data <- data %>%
+#  filter(HAZARD_RATIO >= 0)
 
 
-# age_bin <- age_bin %>% 
-#   arrange(-row_number())
-
-sort(data$HAZARD_RATIO)
-# look at the position of RR ~ 0
-
-abline(v=33.3, col="red", lty=3)
-
+# sort(data$HAZARD_RATIO)
 
 
 
