@@ -62,7 +62,7 @@ health_data$bin  <- as.numeric(health_data$bin)
 
 age_bin <- NULL
 
-health_data <- health_data[1:1000,]
+# health_data <- health_data[1:1000,]
 
 for (i in 1:nrow(health_data)) {
   
@@ -177,17 +177,31 @@ for (i in 1:nrow(health_data)) {
   levels(age_bin$age_bin ) <- gsub("^18$","80-84 years", levels(age_bin$age_bin))
   levels(age_bin$age_bin ) <- gsub("^19$","> 85 years", levels(age_bin$age_bin))
   
-# bind age bins with health data again  
+# bind age bins with health data again with age bins
   health_data <- cbind(health_data, age_bin)
   str(health_data)
   
+  # save health data------------------------------------------------
+  
+write_csv(health_data, "health_data_age_bins.csv")
+  
+  
 #####################################################################
 
+# load health data with age bins
+health_data <- read_csv("health_data_age_bins.csv")
+  str(health_data)
+  
+  health_data$age_bin <- as.factor(health_data$age_bin)
+  health_data$Gender <- as.factor(health_data$Gender)
+  
+  str(health_data)
+  
 # count patients in each day (all genders all ages)
 health_data <- health_data %>%
   group_by(Date,
            Gender,
-           Age) %>%
+           age_bin) %>%
   summarise(sum_patients = sum(bin, na.rm = TRUE))
 
 
@@ -279,6 +293,7 @@ AQ_data_PM25[sapply(AQ_data_PM25,is.na)] = NA
 
 # remove all lines with NA
 AQ_data_PM25 <- na.omit(AQ_data_PM25)
+str(AQ_data_PM25)
 
 
 
@@ -418,17 +433,18 @@ ddist <- datadist(AQ_data_PM25)
 options(datadist="ddist")
 
 # RCS = restricted cubic spline----log
-rms_fit_PM25 <- cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Age + Gender, data = AQ_data_PM25, x=T, y=T)
+rms_fit_PM25 <- cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Gender, data = AQ_data_PM25, x=T, y=T)
 rms_fit_PM25
 summary(rms_fit_PM25)
 
 
 termplot2(rms_fit_PM25, se=T, rug.type="density", rug=T, density.proportion=.05,
           se.type="polygon",  yscale="exponential", log="y",
-          ylab=rep("Hazard Ratio"),
-          main=rep("response curve"),
+          ylab=rep("Hazard Ratio", times=2),
+          main=rep("response curve", times=2),
           col.se=rgb(.2,.2,1,.4), col.term="black")
 abline(h=1, col="red", lty=3)
+
 
 # locator()
 
@@ -478,11 +494,11 @@ tms <- exp(tms)
    tt <- 2 * terms$se.fit[,]
   upper_ci <- tms + tt
   lower_ci <- tms - tt
-  upper_ci <- exp(upper_ci)
-  lower_ci <- exp(lower_ci)
+  # upper_ci <- exp(upper_ci)
+  # lower_ci <- exp(lower_ci)
 
 
-# Get the data used for the rug (density plot on the bottom)
+# Get the data used for the rug (density plot on the bottom)----------------------
   envir = environment(formula(rms_fit_PM25))
   
   mf <- model.frame(rms_fit_PM25)
@@ -500,14 +516,20 @@ predict_PM25 <- rms_fit_PM25$x
 HAZARD_RATIO <- rms_fit_PM25$linear.predictors
 HAZARD_RATIO_res <- rms_fit_PM25$residuals
 data <- cbind(predict_PM25[,1], HAZARD_RATIO)
+# combine the data together-----------------------------------------
 data <- as.data.frame(data)
 
 
-# have a look a the data
+# have a look a the data with HR > 0
 data <- data %>%
  filter(HAZARD_RATIO >= 0)
+
+
+# age_bin <- age_bin %>% 
+#   arrange(-row_number())
+
 sort(data$HAZARD_RATIO)
-# RR ~ 0
+# look at the position of RR ~ 0
 
 abline(v=33.3, col="red", lty=3)
 
