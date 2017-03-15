@@ -553,12 +553,16 @@ summary(rms_fit_PM25)
 termplot2(rms_fit_PM25, se=T, rug.type="density", rug=T, density.proportion=.05,
           se.type="polygon",  yscale="exponential", log="y",
           ylab=rep("Hazard Ratio", times=3),
-         # cex.lab=1.5, cex.axis=2,  cex.main = 2, # ylim = c(-0.2, 0.6) ,#ylim = c(-0.2, 0.4), 
-          cex.lab=1.5, cex.axis=1,  cex.main = 2, las = 2, font=2,
+          cex.lab=1.5, cex.axis=2.5,  cex.main = 2, # ylim = c(-0.2, 0.4), # ylim = c(-0.2, 0.6)  
+         # cex.lab=1.5, cex.axis=1.5,  cex.main = 2, las = 2, font=2,
       #  xlab = c("conc", "Gender"),
-          xlab = c((expression(paste(PM[2.5], " daily concentration (µg/",m^3, ")"))),"Gender"),
-          main=  ("Health Response Curve for PM2.5"),
+          xlab = c((expression(paste(PM[2.5], " daily concentration (µg/",m^3, ")")))),
+       #   main=  ("Health Response Curve for PM2.5"),
+       #   main=  ("Hazard Ratio for PM2.5 by gender"),
+      main=  ("Hazard Ratio for PM2.5 by age bins"),
           col.se=rgb(.2,.2,1,.4), col.term="black")
+
+
 abline(h=1, col="red", lty=3, lwd=3)
 abline(v= 37.90943, col="red", lty=3, lwd=3)
 
@@ -595,9 +599,10 @@ abline(v= 37.90943, col="red", lty=3, lwd=3)
 
 # Get the the terms that are of interest
 
-se = TRUE
+se = TRUE   # confidence interval
 
 which.terms <- terms
+
 terms <- if (is.null(terms))
   predict(rms_fit_PM25, type = "terms", se.fit = se)
 
@@ -605,6 +610,7 @@ terms <- if (is.null(terms))
 tms <- as.matrix(if (se)
   terms$fitted
   else terms)
+
 tms <- exp(tms)  # meake data exponential
 tms <- as.data.frame(tms)
 colnames(tms) <- c("HR", "Gender", "AGE_BIN")
