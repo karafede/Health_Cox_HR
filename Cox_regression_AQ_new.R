@@ -18,7 +18,8 @@ source("termplot2.R")
 # load trial health data
 
 health_data <- read_csv("D:/R_processing/Health data/Asthma_Raw_Data.csv")
-health_data[sapply(health_data,is.na)] = NA 
+# health_data[sapply(health_data,is.na)] = NA 
+health_data <- na.omit(health_data)
 
 # filter data
 
@@ -27,8 +28,13 @@ health_data <- health_data %>%
          Date = date(Date),
          year = year(Date))
 
-# health_data <- health_data %>%
-#   filter(year == c("2013"))
+ health_data <- health_data %>%
+   filter(!ET == "Day Surgery/Surgical Short Stay") %>%
+   filter(!ET == "Home Care") %>%
+   filter(!ET == "Radiology Exam") %>%
+   filter(!ET == "Weqaya Screening") %>%
+   filter(!ET == "Recurring Outpatient")
+   
 
 
 health_data <- health_data %>%
@@ -62,16 +68,17 @@ health_data$bin  <- as.numeric(health_data$bin)
 
 ## function to generate classes of age bins---
 
+
 age_bins_fun <- function(federico){
   
   if (!is.na(federico) & federico == 0)
     AGE_BIN = 1
+
   
-  
-  if (!is.na(federico) & federico < 4 & federico > 1)
+  if (!is.na(federico) & federico <= 4 & federico >=1)
     AGE_BIN = 2
   
-  if (!is.na(federico) & federico < 9 & federico > 5)
+  if (!is.na(federico) & federico <= 9 & federico >=5)
     AGE_BIN = 3
   
   if (!is.na(federico) & federico <= 14 & federico >= 10)
@@ -122,18 +129,21 @@ age_bins_fun <- function(federico){
   if (!is.na(federico) & federico >= 85)
     AGE_BIN = 19
   
-  
 
-  if(is.na(federico))
-    AGE_BIN = NA
-  if(exists("AGE_BIN")){
-    
-  }else {
-    AGE_BIN=NA
-  }
+    # if(is.na(federico))
+    #   AGE_BIN = NA
+    # if(exists("AGE_BIN")){
+    # 
+    # } else {
+    #   AGE_BIN=NA
+    # }
+  
   return(AGE_BIN)
   
 }
+
+
+
 
 
 
@@ -143,7 +153,6 @@ age_bins_fun <- function(federico){
 
 age_data <- as.vector(health_data$Age)
 
-# calculate Air Quality index for O3
 AGE_BIN <- lapply(age_data, age_bins_fun)
 AGE_BIN <- as.numeric(AGE_BIN)
 
@@ -157,7 +166,7 @@ health_data <- cbind(health_data, AGE_BIN)
 # # health_data <- health_data[1:1000,]
 # 
 # for (i in 1:nrow(health_data)) {
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] == 0)
 #   # AGE_BIN = as.character("00")
 #     AGE_BIN = 1
@@ -165,86 +174,86 @@ health_data <- cbind(health_data, AGE_BIN)
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] < 4 & health_data$Age[i] > 1)
 #   # AGE_BIN = as.character("01-04 years")
 #     AGE_BIN = 2
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] < 9 & health_data$Age[i] > 5)
 #   #  AGE_BIN = as.character("05-09 years")
 #     AGE_BIN = 3
-#     
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 14 & health_data$Age[i] >= 10)
 #   #  AGE_BIN = as.character("10-14 years")
 #   AGE_BIN = 4
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 19 & health_data$Age[i] >= 15)
 #     #  AGE_BIN = as.character("15-19 years")
 #     AGE_BIN = 5
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 24 & health_data$Age[i] >= 20)
 #     #  AGE_BIN = as.character("20-24 years")
 #     AGE_BIN = 6
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 29 & health_data$Age[i] >= 25)
 #     #  AGE_BIN = as.character("25-29 years")
 #     AGE_BIN = 7
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 34 & health_data$Age[i] >= 30)
 #     #  AGE_BIN = as.character("30-34 years")
 #     AGE_BIN = 8
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 39 & health_data$Age[i] >= 35)
 #     #  AGE_BIN = as.character("39-35 years")
 #     AGE_BIN = 9
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 44 & health_data$Age[i] >= 40)
 #     #  AGE_BIN = as.character("40-44 years")
 #     AGE_BIN = 10
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 49 & health_data$Age[i] >= 45)
 #     #  AGE_BIN = as.character("45-49 years")
 #     AGE_BIN = 11
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 54 & health_data$Age[i] >= 50)
 #     #  AGE_BIN = as.character("50-54 years")
 #     AGE_BIN = 12
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 59 & health_data$Age[i] >= 55)
 #     #  AGE_BIN = as.character("55-59 years")
 #     AGE_BIN = 13
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 64 & health_data$Age[i] >= 60)
 #     #  AGE_BIN = as.character("60-64 years")
 #     AGE_BIN = 14
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 69 & health_data$Age[i] >= 65)
 #     #  AGE_BIN = as.character("65-69 years")
 #     AGE_BIN = 15
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 74 & health_data$Age[i] >= 70)
 #     #  AGE_BIN = as.character("70-74 years")
 #     AGE_BIN = 16
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 79 & health_data$Age[i] >= 75)
 #     #  AGE_BIN = as.character("75-79 years")
 #     AGE_BIN = 17
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] <= 84 & health_data$Age[i] >= 80)
 #     #  AGE_BIN = as.character("80-84 years")
 #     AGE_BIN = 18
-#   
+# 
 #   if (!is.na(health_data$Age[i]) & health_data$Age[i] >= 85)
 #     #  AGE_BIN = as.character(">85 years")
 #     AGE_BIN = 19
-#   
+# 
 # 
 #   print(i)
-#   age_bin <- rbind(AGE_BIN, age_bin) 
+#   age_bin <- rbind(AGE_BIN, age_bin)
 #   age_bin <- as.vector(age_bin)
 #   age_bin <- as.data.frame(age_bin)
 # 
 #   }
 # 
-#   age_bin <- age_bin %>% 
+#   age_bin <- age_bin %>%
 #     arrange(-row_number())
-# 
+
    str(health_data)
    health_data$AGE_BIN <- as.factor(health_data$AGE_BIN)
    
@@ -299,6 +308,31 @@ health_data <- health_data %>%
   summarise(sum_patients = sum(bin, na.rm = TRUE))
 
 
+
+
+
+# load health data with age bins
+# health_data <- read_csv("health_data_age_bins.csv")
+# str(health_data)
+# 
+# health_data$AGE_BIN <- as.factor(health_data$AGE_BIN)
+# health_data$Gender <- as.factor(health_data$Gender)
+# 
+# Health_gender <- health_data %>%
+#            group_by(Gender) %>%
+#   summarise(somma = sum(bin, na.rm = TRUE))
+# 
+# 
+# 
+# health_data <- read_csv("health_data_age_bins.csv")
+# str(health_data)
+# 
+# health_data$AGE_BIN <- as.factor(health_data$AGE_BIN)
+# health_data$Gender <- as.factor(health_data$Gender)
+# 
+# Health_age <- health_data %>%
+#   group_by(AGE_BIN) %>%
+#   summarise(somma = sum(bin, na.rm = TRUE))
 
 
 # Ozone data----------------------------------------------------------------
@@ -370,10 +404,23 @@ AQ_data_PM10[sapply(AQ_data_PM10,is.na)] = NA
 AQ_data_PM10 <- na.omit(AQ_data_PM10)
 
 
+
+###############################################################################
 ## load datellite data for PM2.5 from MODIS------------------------------------
 
 # PM25_AOD <- read_csv("PM25_from_AOD_MODIS.csv")
 PM25_AOD <- read_csv("PM10_PM25_2011_2016_MODIS.csv")
+
+# get only data over Abu Dhabi -----------------------------------------------
+
+# load station info over Abu Dhabi ----------------------------
+EAD_info <- read.csv("Z:/_SHARED_FOLDERS/Air Quality/Phase 2/AQI/Stations_EAD_info.csv")
+PM25_AOD$Pollutant <- "PM2.5"
+
+# attach infos to satellite PM2.5 data
+PM25_AOD <- EAD_info %>%
+  left_join(PM25_AOD, c("Site", "Pollutant", "Latitude", "Longitude"))
+
 
 # PM25_AOD_2013 <- PM25_AOD %>%
 #   filter(Date < "2014-01-01" & Date > "2013-01-01") %>%
@@ -397,6 +444,10 @@ AQ_data_PM25[sapply(AQ_data_PM25,is.na)] = NA
 # remove all lines with NA
 AQ_data_PM25 <- na.omit(AQ_data_PM25)
 str(AQ_data_PM25)
+
+AQ_data_PM25_sum_admissions <- AQ_data_PM25 %>%
+ group_by(Gender) %>%
+   summarise(sum_admissions = sum(sum_patients, na.rm = TRUE))
 
 
 
@@ -553,18 +604,18 @@ summary(rms_fit_PM25)
 termplot2(rms_fit_PM25, se=T, rug.type="density", rug=T, density.proportion=.05,
           se.type="polygon",  yscale="exponential", log="y",
           ylab=rep("Hazard Ratio", times=3),
-          cex.lab=1.5, cex.axis=2.5,  cex.main = 2, # ylim = c(-0.2, 0.4), # ylim = c(-0.2, 0.6)  
-         # cex.lab=1.5, cex.axis=1.5,  cex.main = 2, las = 2, font=2,
+         # cex.lab=1.5, cex.axis=2.5,  cex.main = 2,# ylim = c(-0.2, 0.6) , #ylim = c(-0.2, 0.4),# ylim = c(-0.5, 0.8),   
+          cex.lab=1.5, cex.axis=1.5,  cex.main = 2, las = 2, font=2,
       #  xlab = c("conc", "Gender"),
           xlab = c((expression(paste(PM[2.5], " daily concentration (µg/",m^3, ")")))),
        #   main=  ("Health Response Curve for PM2.5"),
-       #   main=  ("Hazard Ratio for PM2.5 by gender"),
-      main=  ("Hazard Ratio for PM2.5 by age bins"),
+        #  main=  ("Hazard Ratio for asthma by gender"),
+       main=  ("Hazard Ratio for asthma by age bins"),
           col.se=rgb(.2,.2,1,.4), col.term="black")
 
 
 abline(h=1, col="red", lty=3, lwd=3)
-abline(v= 37.90943, col="red", lty=3, lwd=3)
+abline(v= 35.8, col="red", lty=3, lwd=3)
 
 # par(oldpar)
 # dev.off()
@@ -611,18 +662,22 @@ tms <- as.matrix(if (se)
   terms$fitted
   else terms)
 
-tms <- exp(tms)  # meake data exponential
+
+# check values above HR = 1
+tms <- exp(tms)  # make data exponential
 tms <- as.data.frame(tms)
 colnames(tms) <- c("HR", "Gender", "AGE_BIN")
 AAA <- cbind(AQ_data_PM25$mean_PM25, tms)
 # look where HR is > 1
 
+
+
+# filter only HR > 1
 AAA <- AAA %>%
   filter(HR > 1)
 
 # look at the position of RR ~ 1
-
-abline(v= 37.90943, col="red", lty=3, lwd=3)
+abline(v= 35.85929, col="red", lty=3, lwd=3)
 
 
 
