@@ -406,7 +406,7 @@ AQ_data_PM10 <- na.omit(AQ_data_PM10)
 
 
 ###############################################################################
-## load datellite data for PM2.5 from MODIS------------------------------------
+## load satellite data for PM2.5 from MODIS------------------------------------
 
 # PM25_AOD <- read_csv("PM25_from_AOD_MODIS.csv")
 PM25_AOD <- read_csv("PM10_PM25_2011_2016_MODIS.csv")
