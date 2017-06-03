@@ -311,7 +311,7 @@ p_PM25_no_outliers <- ggplot(AQ_data_PM25, aes(Date, PM25_no_outliers)) +
   geom_line(aes(y = PM25_no_outliers, col = "PM25_no_outliers")) +
   geom_smooth() +
   theme(legend.position="none") + 
-  ylab(expression(paste(PM[25], " (5g/",m^3, ")", " 24h-mean"))) + 
+  ylab(expression(paste(PM[25], " (ug/",m^3, ")", " 24h-mean"))) + 
   ylim(0, 150)  
 p_PM25_no_outliers
 

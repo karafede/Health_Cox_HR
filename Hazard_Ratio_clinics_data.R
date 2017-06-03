@@ -68,6 +68,7 @@ diagnosis_code <-  other_clinics_2013_2016[!duplicated(other_clinics_2013_2016["
 hospitals <-  other_clinics_2013_2016[!duplicated(other_clinics_2013_2016["HOSPITAL"]),]
 
 
+# count patients onle once
 other_clinics_2013_2016 <- other_clinics_2013_2016 %>%
   filter(time_diff >= 0)
 
@@ -128,6 +129,7 @@ health_data$Gender <- as.factor(health_data$Gender)
 health_data$disease <- as.factor(health_data$disease)
 str(health_data)
 
+# select only respiratory health outcomes
 
 health_data <- health_data %>%
   filter(disease == 'RESPIRATORY')
@@ -326,6 +328,9 @@ oldpar <- par(las=1)
 
 min <- as.Date("2013-01-02") 
 max <- as.Date("2015-10-11") 
+
+# min <- as.Date("2015-03-20") 
+# max <- as.Date("2015-04-30") 
 
 
 # count patients in each day (all genders all ages)
@@ -867,7 +872,15 @@ dev.off()
 #################################################################################################
 #################################################################################################
 #################################################################################################
-#### join helath data with PM2.5 daily concentrations ###########################################
+#### join health data with PM2.5 daily concentrations ###########################################
+
+
+# introduce a LAG in the health data (shift admission to hosptitals by 1 days)
+
+# str(health_data)
+# health_data <- as.data.frame(health_data)
+# health_data <- health_data %>%
+#   mutate(Date = Date + 2)  # add x number of days
 
 
 AQ_HEALTH <- PM25_all %>%
@@ -899,6 +912,8 @@ AQ_HEALTH <- read.csv("HEALTH_DATA_PM25_COUNTS_Other_EMIRATES.csv")
 ##### Summary STATISTICAL plots #############################
 #############################################################
 
+
+#!!!!!!!!!!!!!### remember to change to DETREND data when NECESSARY!!!!!
 
 # average all variables by day
 
@@ -965,7 +980,7 @@ par(oldpar)
 dev.off()
 
 
-
+#### find relation between sum patiensts and PM25 concentration
 
 
 BBB <- NULL
@@ -1180,13 +1195,20 @@ abline(v= 42.84, col="red", lty=3, lwd=3)
 ###############################################################################################################
 ###############################################################################################################
 
+SurvObj_patients_PM25 <- with(AQ_HEALTH, Surv(sum_patients))
 
 rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4) + Gender + AGE_BIN, family = Gamma(),
                           data = AQ_HEALTH, x=T, y=T)
+
+rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4), family = Gamma(),
+                        data = AQ_HEALTH, x=T, y=T)
+
+summary(rms_fit_PM25_glm)
+coef(rms_fit_PM25_glm)
   
   
-  # rms_fit_PM25_glm <- glm(detrend_counts ~ rcs(detrend_PM25, 3), family = gaussian,
-  #                         data = AQ_HEALTH, x=T, y=T)
+# rms_fit_PM25_glm <- glm(detrend_counts ~ rcs(detrend_PM25, 3), family = poisson(),
+#                           data = AQ_HEALTH, x=T, y=T)
   
   
   termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=.05,
@@ -1205,23 +1227,30 @@ rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4) + Gender + AGE_BIN, fam
   abline(h=1, col="red", lty=3, lwd=3)
   abline(v= 45.14, col="red", lty=3, lwd=3)
   
-  
-#### fine treshold value where RR == 1
+#######################################  
+## calculate the relative risk RR #####
+#######################################
+
   se = TRUE   # standard error
   which.terms <- terms
   
+  
+  # The "terms" option returns a matrix giving the fitted values of each term in the model
+  # formula on the linear predictor scale.
+  
   terms <- if (is.null(terms))
     predict(rms_fit_PM25_glm, type = "terms", se.fit = se)
-  
   tms <- as.matrix(if (se)
     terms$fit
     else terms)
 
-  
+  #### find treshold value where RR == 1
   # check values above RR = 1
+  # calculate the relative risk (Relative risk = exp(coef(model)))
   tms <- exp(tms)  # make data exponential
   tms <- as.data.frame(tms)
-  colnames(tms) <- c("RR", "Gender", "AGE_BIN")
+#  colnames(tms) <- c("RR", "Gender", "AGE_BIN")
+  colnames(tms) <- c("RR")
   AAA <- cbind(AQ_HEALTH$mean_PM25, tms)
   
   
@@ -1231,4 +1260,6 @@ rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4) + Gender + AGE_BIN, fam
   RR_1 <- AAA %>%
     filter(RR >= 1)
   
+  # for confidence intervals (CI)
+  exp(cbind(coefficients(rms_fit_PM25_glm), confint(rms_fit_PM25_glm)))
   

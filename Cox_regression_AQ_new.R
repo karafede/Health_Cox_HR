@@ -590,6 +590,8 @@ options(datadist="ddist")
 # rms_fit_PM25 <- cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Gender, data = AQ_data_PM25, x=T, y=T)
  rms_fit_PM25 <- cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Gender + AGE_BIN, data = AQ_data_PM25, x=T, y=T)
 
+# rms_fit_PM25 <- survfit(cph(SurvObj_patients_PM25 ~ rcs(mean_PM25, 4) + Gender, data = AQ_data_PM25, x=T, y=T))
+ 
 rms_fit_PM25
 summary(rms_fit_PM25)
 
@@ -673,11 +675,12 @@ AAA <- cbind(AQ_data_PM25$mean_PM25, tms)
 
 
 # filter only HR > 1
-AAA <- AAA %>%
+HR_1 <- AAA %>%
   filter(HR > 1)
 
 # look at the position of RR ~ 1
 abline(v= 35.85929, col="red", lty=3, lwd=3)
+
 
 
 
@@ -701,6 +704,28 @@ abline(v= 35.85929, col="red", lty=3, lwd=3)
   if (is.null(data))
     data <- mf
 
+  
+  
+###########################################################################  
+## kind of POPULATION ATTRIBUTABLE FRACTION (%) ###########################
+
+  AAA$PAF <- ((AAA$HR -1)/AAA$HR) *100
+  AAA <- as.data.frame(AAA)  
+  
+    p_PAF <- ggplot(AAA, aes(PAF)) +
+    geom_histogram(binwidth= 1, colour="black", fill="white") +
+    theme_bw() 
+    p_PAF
+    
+    
+    
+    p_PM25 <- ggplot(AQ_data_PM25, aes(mean_PM25)) +
+      geom_histogram(binwidth= 5, colour="black", fill="white") +
+      theme_bw() 
+    p_PM25
+    
+  
+  
 #####################################################################
 #####################################################################
 #####################################################################
