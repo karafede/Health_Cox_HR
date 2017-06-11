@@ -67,6 +67,8 @@ diagnosis_description <-  other_clinics_2013_2016[!duplicated(other_clinics_2013
 diagnosis_code <-  other_clinics_2013_2016[!duplicated(other_clinics_2013_2016["Diagnosis_Code"]),]
 hospitals <-  other_clinics_2013_2016[!duplicated(other_clinics_2013_2016["HOSPITAL"]),]
 
+write.csv(hospitals, "hospital.csv")
+
 
 # count patients onle once
 other_clinics_2013_2016 <- other_clinics_2013_2016 %>%
@@ -380,7 +382,7 @@ health_data <- health_data %>%
 # quick plot #################
 
 min <- as.Date("2013-01-01") 
-max <- as.Date("2016-01-01") 
+max <- as.Date("2015-09-01") 
 
 plot <- ggplot(health_data, aes(Date, sum_patients)) + 
   theme_bw() +
@@ -444,13 +446,13 @@ plot <- ggplot(health_data, aes(Date, sum_patients)) +
   geom_line(aes(y = sum_patients, col = "sum_patients"), alpha=1, col="red") +
   geom_line(aes(y = daily_counts_seasons, col = "daily_counts_seasons"), alpha=1, col="blue") +
   theme(legend.position="none") + 
-  stat_smooth(method = "loess") +
-  ylab(expression("Sum Patients (counts)")) + 
+#  stat_smooth(method = "loess") +
+  ylab(expression("admissions (counts)")) + 
   theme(axis.title.x=element_blank(),
-        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=22, colour = "black", face="bold")) +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=22),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=20, colour = "black")) +
-  ylim(0, 200) + 
+        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=32, colour = "black", face="bold")) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32, colour = "black")) +
+  ylim(0, 160) + 
   xlim(min, max) 
 plot
 
@@ -469,17 +471,18 @@ jpeg('D:/R_processing/plots/NO_Seasonality_Dubai_Northern_Clinics_patients_respi
 par(mar=c(4, 10, 9, 2) + 0.3)
 oldpar <- par(las=1)
 
+
 plot <- ggplot(health_data, aes(Date, sum_patients)) + 
   theme_bw() +
   # geom_line(aes(y = sum_patients, col = "sum_patients"), alpha=1, col="red") +
   geom_line(aes(y = detrend_counts, col = "detrend_counts"), alpha=1, col="blue") +
   theme(legend.position="none") + 
-  ylab(expression("Detrended sum admissions (counts)")) + 
+  ylab(expression("admissions (counts)")) + 
   stat_smooth(method = "loess") +
   theme(axis.title.x=element_blank(),
-        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=22, colour = "black", face="bold")) +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=22),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=20, colour = "black")) +
+        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=32, colour = "black", face="bold")) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32, colour = "black")) +
   ylim(0, 150) + 
   xlim(min, max) 
 plot
@@ -806,6 +809,9 @@ PM25_all <- cbind(PM25_all, PM25_season)
 
 
 
+min <- as.Date("2013-01-01") 
+max <- as.Date("2015-09-01") 
+
 
 jpeg('D:/R_processing/plots/Seasonality_Dubai_Northern_PM25.jpg',   
      quality = 100, bg = "white", res = 200, width = 13, height = 7, units = "in")
@@ -820,11 +826,13 @@ plot <- ggplot(PM25_all, aes(Date, mean_PM25)) +
   theme(legend.position="none") + 
   ylab(expression(paste(PM[25], " (µg/",m^3, ")", " 24h-mean"))) + 
   theme(axis.title.x=element_blank(),
-        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=22, colour = "black", face="bold")) +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=22),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=20, colour = "black")) +
+        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=32, colour = "black", face="bold")) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32, colour = "black")) +
   ylab(expression(paste(PM[25], " (µg/",m^3, ")", " 24h-mean"))) + 
-  ylim(0, 150)  
+  ylim(0, 150) +
+  xlim(min, max)
+
 plot
 
 par(oldpar)
@@ -856,11 +864,12 @@ plot <- ggplot(PM25_all, aes(Date, mean_PM25)) +
   theme(legend.position="none") + 
   ylab(expression(paste(PM[25], " (µg/",m^3, ")", " 24h-mean"))) + 
   theme(axis.title.x=element_blank(),
-        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=22, colour = "black", face="bold")) +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=22),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=20, colour = "black")) +
+        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=32, colour = "black", face="bold")) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32, colour = "black")) +
   ylab(expression(paste(PM[25], " (µg/",m^3, ")", " 24h-mean"))) + 
-  ylim(-50, 150)  
+  ylim(-10, 120)  +
+  xlim(min, max)
 plot
 
 par(oldpar)
@@ -877,10 +886,10 @@ dev.off()
 
 # introduce a LAG in the health data (shift admission to hosptitals by 1 days)
 
-# str(health_data)
-# health_data <- as.data.frame(health_data)
-# health_data <- health_data %>%
-#   mutate(Date = Date + 2)  # add x number of days
+str(health_data)
+health_data <- as.data.frame(health_data)
+health_data <- health_data %>%
+  mutate(Date = Date -0)  # subtract x number of days
 
 
 AQ_HEALTH <- PM25_all %>%
@@ -917,16 +926,16 @@ AQ_HEALTH <- read.csv("HEALTH_DATA_PM25_COUNTS_Other_EMIRATES.csv")
 
 # average all variables by day
 
-AQ_HEALTH_SUMMARY_STATS <- AQ_HEALTH %>%
-  group_by(Date) %>%
-  summarise(mean_PM25 = mean(mean_PM25),
-            sum_patients = sum(sum_patients))
-
-
 # AQ_HEALTH_SUMMARY_STATS <- AQ_HEALTH %>%
 #   group_by(Date) %>%
-#   summarise(mean_PM25 = mean(detrend_PM25),
-#             sum_patients = sum(detrend_counts))
+#   summarise(mean_PM25 = mean(mean_PM25),
+#             sum_patients = sum(sum_patients))
+
+
+AQ_HEALTH_SUMMARY_STATS <- AQ_HEALTH %>%
+  group_by(Date) %>%
+  summarise(mean_PM25 = mean(detrend_PM25),
+            sum_patients = sum(detrend_counts))
 
 
 jpeg('D:/R_processing/plots/Dubai_Northern_Clinics_PM25_distribution_respiratory.jpg',   
@@ -944,10 +953,10 @@ p_PM25 <- ggplot(AQ_HEALTH_SUMMARY_STATS,  aes(mean_PM25)) +
   ylab("number of days") + 
   ylim(0, 200) +
   xlab(expression(paste(PM[2.5], " (µg/",m^3, ")", " "))) +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=18),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=18)) +
-  theme(axis.title.x = element_text(face="bold", colour="black", size=20),
-        axis.text.x  = element_text(angle=0, vjust=0.5, size=20)) 
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32)) +
+  theme(axis.title.x = element_text(face="bold", colour="black", size=32),
+        axis.text.x  = element_text(angle=0, vjust=0.5, size=32)) 
 p_PM25
 
 par(oldpar)
@@ -962,18 +971,20 @@ jpeg('D:/R_processing/plots/Dubai_Northern_Clinics_Sum_Patients_distribution_res
 par(mar=c(4, 10, 9, 2) + 0.3)
 oldpar <- par(las=1)
 
+
 p_sum_patients <- ggplot(AQ_HEALTH_SUMMARY_STATS,  aes(sum_patients)) + 
   theme_bw() +
   geom_histogram(binwidth = 5, colour="black", fill="white") +
   ylim(0, 150) +
   ggtitle("number of patients per day (Dubai and Northern Emirates, 2013-2015)") + 
   theme(plot.title = element_text(lineheight=.8, face="bold", size = 20, hjust = 0.5)) +
-  xlab("sum patients per day") +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=18),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=18)) +
-  theme(axis.title.x = element_text(face="bold", colour="black", size=20),
-        axis.text.x  = element_text(angle=0, vjust=0.5, size=20)) +
-  ylab("number of days") 
+  xlab("admissions per day") +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32)) +
+  theme(axis.title.x = element_text(face="bold", colour="black", size=32),
+        axis.text.x  = element_text(angle=0, vjust=0.5, size=32)) +
+  ylab("number of days") +
+xlim(0, 150)
 p_sum_patients
 
 par(oldpar)
@@ -1020,32 +1031,196 @@ SUM_PATIENTS_BINS <- na.omit(SUM_PATIENTS_BINS)
 ########################################################################################
 
 
-jpeg('D:/R_processing/plots/Dubai_Northern_Clinics_counts_vs_PM25_normalised.jpg',   
-     quality = 100, bg = "white", res = 200, width = 13, height = 7, units = "in")
+jpeg('D:/R_processing/plots/Dubai_Northern_Clinics_counts_vs_PM25.jpg',   
+     quality = 100, bg = "white", res = 200, width = 13, height = 9, units = "in")
 par(mar=c(4, 10, 9, 2) + 0.3)
 oldpar <- par(las=1)
 
 
 p_health <- ggplot(SUM_PATIENTS_BINS, aes(xxx, sum_patients)) + 
   theme_bw() +
-  geom_point(size = 3) +
+  geom_point(size = 5) +
   geom_smooth() +
   ylim(0, 100) +
   ggtitle("number of patients per day (Dubai and Northern Emirates, 2013-2015)") + 
   theme(plot.title = element_text(lineheight=.8, face="bold", size = 20, hjust = 0.5)) +
   xlab("sum patients per day") +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=18),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=18)) +
-  theme(axis.title.x = element_text(face="bold", colour="black", size=20),
-        axis.text.x  = element_text(angle=0, vjust=0.5, size=20)) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32)) +
+  theme(axis.title.x = element_text(face="bold", colour="black", size=32),
+        axis.text.x  = element_text(angle=0, vjust=0.5, size=32)) +
   xlab(expression(paste(PM[2.5], " (µg/",m^3, ")", " "))) +
   theme(legend.position="none") + 
-  ylab("tot num. patients per day") 
+  ylab("average admissions per day") +
+  xlim(5, 125)
 #  ylim(0, 750) 
 p_health
 
 par(oldpar)
 dev.off()
+
+
+
+
+
+###############################################################################################################
+####    Generalised linear model   ############################################################################
+###############################################################################################################
+###############################################################################################################
+###############################################################################################################
+#library(survival)
+
+# SurvObj_patients_PM25 <- with(AQ_HEALTH, Surv(sum_patients))
+
+# rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4) + Gender + AGE_BIN, family = Gamma(),
+#                         data = AQ_HEALTH, x=T, y=T)
+
+# rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4), family = Gamma(),
+#                         data = AQ_HEALTH, x=T, y=T)
+
+
+### Apply Poisson Regression
+
+AQ_HEALTH_pos <- AQ_HEALTH %>%
+  filter(detrend_PM25 > 0) %>%
+  filter(detrend_counts > 0)
+
+
+rms_fit_PM25_glm <- glm(detrend_counts ~ rcs(detrend_PM25, 3), family = poisson(),
+                          data = AQ_HEALTH_pos, x=T, y=T)
+
+par(mar=c(6,10,3,5))
+
+
+termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=.05,
+          se.type="polygon",  yscale="exponential", log="y",
+          # ylab=rep("Relative Risk", times=3),
+          ylab = "",
+          xlab = "",
+          cex.lab=2, cex.axis=2.5,  cex.main = 4, ylim = c(-0.4, 0.4), # ylim = c(-0.2, 0.6) , #ylim = c(-0.2, 0.4),# ,   
+          cex.lab=2, cex.axis=2.5,  cex.main = 2, las = 1, font=2,
+          #  xlab = c("conc", "Gender"),
+         # xlab = c((expression(paste(PM[2.5], " daily concentration (µg/",m^3, ")")))),
+          #   main=  ("Health Response Curve for PM2.5 (Generalised Linear Model)"),
+          #main=  ("Hazard Ratio for asthma by gender (Generalised Linear Model)"),
+          # main=  ("Relative Risk for asthma by age bins (Generalised Linear Model)"),
+          col.se=rgb(.2,.2,1,.4), col.term="black")
+
+
+abline(h=1, col="red", lty=3, lwd=2)
+abline(v= 48, col="red", lty=3, lwd=2)
+
+abline(h = y_min, col="red", lty=1, lwd=2)
+abline(v = 31, col ="black", lty=1, lwd=3)
+
+
+ymin <- min(exp(0.4))
+ymax <- max(exp(-0.4))
+x_val <- 0:100
+
+par(new=TRUE)
+plot(x_val, line_eq + 0.104, ylim=range(c(ymin, ymax)), axes = F, xlab = "", ylab = "",
+     col="black",lty=1, lwd=3, type = "l")
+
+#######################################  
+## calculate the relative risk RR #####
+#######################################
+
+se = TRUE   # standard error
+which.terms <- terms
+
+
+# The "terms" option returns a matrix giving the fitted values of each term in the model
+# formula on the linear predictor scale.
+
+terms <- if (is.null(terms))
+  predict(rms_fit_PM25_glm, type = "terms", se.fit = se)
+tms <- as.matrix(if (se)
+  terms$fit
+  else terms)
+
+#### find treshold value where RR == 1
+# check values above RR = 1
+# calculate the relative risk (Relative risk = exp(coef(model)))
+tms <- exp(tms)  # make data exponential
+tms <- as.data.frame(tms)
+#  colnames(tms) <- c("RR", "Gender", "AGE_BIN")
+colnames(tms) <- c("RR")
+# AAA <- cbind(AQ_HEALTH$mean_PM25, tms)
+AAA <- cbind(AQ_HEALTH_pos$detrend_PM25, tms)
+
+
+# look where RR is > 1
+# filter only RR > 1
+RR_1 <- AAA %>%
+  filter(RR >= 1)
+
+# for confidence intervals (CI)
+# exp(cbind(coefficients(rms_fit_PM25_glm), confint(rms_fit_PM25_glm)))
+
+
+########################################################################
+########################################################################
+
+data_lm <- AAA%>%
+  filter(RR>= 1)
+y_min <- min(AAA$RR)
+
+
+data_lm <- data_lm %>%
+  arrange(RR)
+data_lm <- data_lm[1:100,]  # increase of 5 ug/m3 circa
+xxx <- lm(RR~`AQ_HEALTH_pos$detrend_PM25`, data=data_lm)
+xxx$coefficients
+x_val <- 0:100
+line_eq<- xxx$coefficients[1]+ xxx$coefficients[2]*x_val
+plot(line_eq)
+ind_intersection <- which(abs(y_min-line_eq) ==min(abs(y_min-line_eq)))
+
+
+limit_PM25 <- (line_eq [ind_intersection ]- xxx$coefficients[1])/xxx$coefficients[2] 
+
+########################################################################
+########################################################################
+
+
+####################################
+#### conficence interval (95%) #####
+####################################
+
+predAll <- predict(rms_fit_PM25_glm, type = "terms", se.fit = se)
+upper_CI =  exp(predAll$fit + 1.96 *  predAll$se.fit)
+lower_CI = exp(predAll$fit - 1.96 * predAll$se.fit)
+
+AAA <- cbind(AQ_HEALTH_pos$detrend_PM25, tms, lower_CI, upper_CI)
+colnames(AAA) <- c("detrend_PM25", "RR", "Lower_CI", "Upper_CI")
+
+# filter only RR > 1
+RR_1 <- AAA %>%
+  filter(RR >= 1)
+
+write.csv(RR_1, "D:/R_processing/RR_DUBAI_Northern.csv")
+
+# number of mean daily hospital admissions
+AQ_HEALTH_mean <-  AQ_HEALTH %>%
+  summarise(mean_admissions = mean(sum_patients, na.rm = T),
+            mean_admiss_detrend = mean(detrend_counts, na.rm = T),
+            mean_PM25 = mean(mean_PM25),
+            mean_PM25_detrend = mean(detrend_PM25))
+
+
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
+#########################################################################################
 
 
 
@@ -1187,79 +1362,4 @@ abline(v= 42.84, col="red", lty=3, lwd=3)
     data <- mf
 
   
-  
-
-###############################################################################################################
-####    Generalised linear model   ############################################################################
-###############################################################################################################
-###############################################################################################################
-###############################################################################################################
-
-SurvObj_patients_PM25 <- with(AQ_HEALTH, Surv(sum_patients))
-
-rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4) + Gender + AGE_BIN, family = Gamma(),
-                          data = AQ_HEALTH, x=T, y=T)
-
-rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 4), family = Gamma(),
-                        data = AQ_HEALTH, x=T, y=T)
-
-summary(rms_fit_PM25_glm)
-coef(rms_fit_PM25_glm)
-  
-  
-# rms_fit_PM25_glm <- glm(detrend_counts ~ rcs(detrend_PM25, 3), family = poisson(),
-#                           data = AQ_HEALTH, x=T, y=T)
-  
-  
-  termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=.05,
-            se.type="polygon",  yscale="exponential", log="y",
-            ylab=rep("Relative Risk", times=3),
-            cex.lab=1.5, cex.axis=2.5,  cex.main = 2, ylim = c(-0.1, 0.1), # ylim = c(-0.2, 0.6) , #ylim = c(-0.2, 0.4),# ,   
-            cex.lab=1.5, cex.axis=1.5,  cex.main = 2, las = 2, font=2,
-            #  xlab = c("conc", "Gender"),
-            xlab = c((expression(paste(PM[2.5], " daily concentration (µg/",m^3, ")")))),
-            #   main=  ("Health Response Curve for PM2.5 (Generalised Linear Model)"),
-              main=  ("Hazard Ratio for asthma by gender (Generalised Linear Model)"),
-            # main=  ("Relative Risk for asthma by age bins (Generalised Linear Model)"),
-            col.se=rgb(.2,.2,1,.4), col.term="black")
-  
-  
-  abline(h=1, col="red", lty=3, lwd=3)
-  abline(v= 45.14, col="red", lty=3, lwd=3)
-  
-#######################################  
-## calculate the relative risk RR #####
-#######################################
-
-  se = TRUE   # standard error
-  which.terms <- terms
-  
-  
-  # The "terms" option returns a matrix giving the fitted values of each term in the model
-  # formula on the linear predictor scale.
-  
-  terms <- if (is.null(terms))
-    predict(rms_fit_PM25_glm, type = "terms", se.fit = se)
-  tms <- as.matrix(if (se)
-    terms$fit
-    else terms)
-
-  #### find treshold value where RR == 1
-  # check values above RR = 1
-  # calculate the relative risk (Relative risk = exp(coef(model)))
-  tms <- exp(tms)  # make data exponential
-  tms <- as.data.frame(tms)
-#  colnames(tms) <- c("RR", "Gender", "AGE_BIN")
-  colnames(tms) <- c("RR")
-  AAA <- cbind(AQ_HEALTH$mean_PM25, tms)
-  
-  
-  
-  # look where RR is > 1
-  # filter only RR > 1
-  RR_1 <- AAA %>%
-    filter(RR >= 1)
-  
-  # for confidence intervals (CI)
-  exp(cbind(coefficients(rms_fit_PM25_glm), confint(rms_fit_PM25_glm)))
   

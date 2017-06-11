@@ -16,6 +16,7 @@ termplot2 <- function (model, data = NULL, envir = environment(formula(model)),
   # se.type: "line", "polygon"
   
   # Basic functions used by termplot
+  # ff = 2 is ~ 1.96 for te calcualtion of the Confidence Interval
   se.lines <- function(x, iy, i, ff = 2) {
     tt <- ff * terms$se.fit[iy, i]
     upper_ci <- tms[iy, i] + tt
