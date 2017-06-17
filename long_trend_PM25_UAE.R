@@ -9,6 +9,7 @@
 library(readr)
 library(dplyr)
 library(lubridate)
+library(ggplot2)
 
 # satellite data
 setwd("D:/R_processing")
@@ -37,7 +38,7 @@ PM25_sat <- na.omit(PM25_sat)
 #### remove outliers function---------------------------------------------------------
 remove_outliers <- function(x, na.rm = TRUE, ...) {
   qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
-  H <- 4 * IQR(x, na.rm = na.rm)
+  H <- 4.5 * IQR(x, na.rm = na.rm)
   y <- x
   y[x < (qnt[1] - H)] <- NA
   y[x > (qnt[2] + H)] <- NA
@@ -84,6 +85,28 @@ NCMS_AQ_2013 <- read.csv(paste0(dir_AQ, "/","database_DM_ 2013 _daily_filtered.c
 NCMS_AQ_2014 <- read.csv(paste0(dir_AQ, "/","database_DM_ 2014 _daily_filtered.csv"))
 NCMS_AQ_2015 <- read.csv(paste0(dir_AQ, "/","database_DM_ 2015 _daily_filtered.csv"))
 NCMS_AQ_2016 <- read.csv(paste0(dir_AQ, "/","database_DM_ 2016 _daily_filtered.csv"))
+
+
+# use new processed AQ data
+dir_AQ <- "D:/AQ_data/hourly_FK_new/hourly_data/test_FK/Daily_mean"
+dir_AQ <- "Z:/_SHARED_FOLDERS/Air Quality/Phase 1/Pathflow of Phase I_DG/dawit Data/Hourly Database format CSV/hourly_FK_new/hourly_data/test_FK/Daily_mean"
+
+DM_AQ_2013 <- read.csv(paste0(dir_AQ, "/","database_DM_2013_daily_mean.csv"))[-1]
+DM_AQ_2014 <- read.csv(paste0(dir_AQ, "/","database_DM_2014_daily_mean.csv"))[-1]
+DM_AQ_2015 <- read.csv(paste0(dir_AQ, "/","database_DM_2015_daily_mean.csv"))[-1]
+DM_AQ_2016 <- read.csv(paste0(dir_AQ, "/","database_DM_2016_daily_mean.csv"))[-1]
+
+NCMS_AQ_2013 <- read.csv(paste0(dir_AQ, "/","database_NCMS_2013_daily_mean.csv"))[-1]
+NCMS_AQ_2014 <- read.csv(paste0(dir_AQ, "/","database_NCMS_2014_daily_mean.csv"))[-1]
+NCMS_AQ_2015 <- read.csv(paste0(dir_AQ, "/","database_NCMS_2015_daily_mean.csv"))[-1]
+NCMS_AQ_2016 <- read.csv(paste0(dir_AQ, "/","database_NCMS_2016_daily_mean.csv"))[-1]
+
+EAD_AQ_2013 <- read.csv(paste0(dir_AQ, "/","database_EAD_2013_daily_mean.csv"))[-1]
+EAD_AQ_2014 <- read.csv(paste0(dir_AQ, "/","database_EAD_2014_daily_mean.csv"))[-1]
+EAD_AQ_2015 <- read.csv(paste0(dir_AQ, "/","database_EAD_2015_daily_mean.csv"))[-1]
+EAD_AQ_2016 <- read.csv(paste0(dir_AQ, "/","database_EAD_2016_daily_mean.csv"))[-1]
+
+
 
 # bind data together
 UAE_AQ <- rbind(EAD_AQ_2013, EAD_AQ_2014, EAD_AQ_2015, EAD_AQ_2016,
@@ -149,9 +172,6 @@ dev.off()
 
 
 
-
-
-
 # remove outliers (4 times IQR)
 PM25_all_mean$mean_PM25_no_outliers <- remove_outliers(PM25_all_mean$mean_PM25)
 
@@ -172,6 +192,9 @@ AAA$Date <- as.numeric(AAA$Date)  # need Date to be numeric
 
 smooth_PM25_no_outliers <- predict(loess(mean_PM25_no_outliers ~ Date ,AAA),
                                    AAA$Date)
+
+
+# smooth_PM25_no_outliers <- predict(lm(mean_PM25_no_outliers ~ Date ,AAA))
 
 
 # remove all lines with NA
@@ -203,7 +226,48 @@ min <- as.Date("2011-06-01")
 max <- as.Date("2016-12-31") 
 
 
+###########################
+## Plot ###################
+###########################
 
+
+jpeg('D:/R_processing/plots/PM25_long_trend.jpg',
+     quality = 100, bg = "white", res = 300, width = 14, height = 9, units = "in")
+par(mar=c(4, 10, 9, 2) + 0.3)
+oldpar <- par(las=1)
+
+
+PM25_TREND_6_YEARS_no_outliers <- ggplot(PM25_all_mean, aes(Date, mean_PM25_no_outliers)) + 
+  theme_bw() +
+  geom_line(aes(y = mean_PM25_no_outliers, col = "mean_PM25_no_outliers"), alpha=0.6, col = "black") +
+#   stat_smooth(method = "loess", size = 1.5, formula = y ~ x, size = 1) +
+  geom_smooth(method="lm", formula = y ~ poly(x, 22), size = 1, fill = "blue", col = "black") +  
+  geom_smooth(method="lm", size = 1, color = "black", lty=2, lwd=2, fill = "red") + 
+  
+  theme(legend.position="none") + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=32, colour = "black", face="bold")) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32, colour = "black")) +
+  ylab(expression(paste(PM[2.5], " (µg/",m^3, ")", " 24h-mean"))) + 
+  xlim(min, max) +
+  ylim(0, 150) +
+  geom_hline(aes(yintercept=25), colour="black", linetype="dashed") +
+  geom_hline(aes(yintercept=35), colour="black", size = 1) # linetype="dotted" 
+#  geom_hline(yintercept=MEAN_PM25+1, col="blue", size = 1) +
+# geom_hline(yintercept=40, col="blue", size = 1) 
+# geom_hline(yintercept=MIN+0.3, col="black", size = 0.5, linetype="dashed") 
+PM25_TREND_6_YEARS_no_outliers
+
+
+par(oldpar)
+dev.off()
+
+
+
+
+############ OLD plot ####################################################################
+##########################################################################################
 
 jpeg('D:/R_processing/plots/PM25_long_trend.jpg',
      quality = 100, bg = "white", res = 300, width = 14, height = 9, units = "in")
@@ -216,12 +280,11 @@ PM25_TREND_6_YEARS_no_outliers <- ggplot(PM25_all_mean, aes(Date, mean_PM25_no_o
   geom_line(aes(y = mean_PM25_no_outliers, col = "mean_PM25_no_outliers"), alpha=0.6) +
   stat_smooth(method = "loess") +
   theme(legend.position="none") + 
-  ylab(expression(paste(PM[25], " (5g/",m^3, ")", " 24h-mean"))) + 
   theme(axis.title.x=element_blank(),
         axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=22, colour = "black", face="bold")) +
   theme(axis.title.y = element_text(face="bold", colour="black", size=22),
         axis.text.y  = element_text(angle=0, vjust=0.5, size=20, colour = "black")) +
-  ylab(expression(paste(PM[25], " (5g/",m^3, ")", " 24h-mean"))) + 
+  ylab(expression(paste(PM[2.5], " (µg/",m^3, ")", " 24h-mean"))) + 
   xlim(min, max) +
   ylim(0, 150) + 
   geom_hline(yintercept=MEAN_PM25, col="green", size = 1) +
@@ -229,7 +292,7 @@ PM25_TREND_6_YEARS_no_outliers <- ggplot(PM25_all_mean, aes(Date, mean_PM25_no_o
   
   geom_text(aes(x = as.Date("2012-06-01") , y = 50,
                 label = "long term annual mean: 44,2 ug/m3"), size = 8) +
-  geom_text(aes(x = as.Date("2016-05-01") , y = 36, 
+  geom_text(aes(x = as.Date("2016-05-01") , y = 36,
                 label = "lower limit: 39 ug/m3"), size = 8, col="black")
 
  PM25_TREND_6_YEARS_no_outliers
