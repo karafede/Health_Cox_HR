@@ -17,6 +17,8 @@ source("termplot2.R")
 
 # load trial health data
 
+
+
 health_data <- read_csv("D:/R_processing/Health data/Asthma_Raw_Data.csv")
 # health_data[sapply(health_data,is.na)] = NA 
 health_data <- na.omit(health_data)
@@ -25,7 +27,7 @@ health_data <- na.omit(health_data)
 
 health_data <- health_data %>%
   mutate(Date = mdy_hm(Date, tz = "UTC"),
-         Date = date(Date),
+         #Date = date(Date),
          year = year(Date))
 
  health_data <- health_data %>%
