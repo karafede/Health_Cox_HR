@@ -10,7 +10,6 @@ library(survival)
 library(tidyr)
 library(stats)
 
-
 setwd("D:/R_processing")
 source("termplot2.R")
 
@@ -27,7 +26,7 @@ health_data <- na.omit(health_data)
 
 health_data <- health_data %>%
   mutate(Date = mdy_hm(Date, tz = "UTC"),
-         #Date = date(Date),
+         Date = date(Date),
          year = year(Date))
 
  health_data <- health_data %>%
@@ -840,6 +839,8 @@ dev.off()
 ########################################################################################
 
 library(survival)
+library(splines)
+library(cobs)
 
 # rms_fit_PM25_glm <- glm(sum_patients ~ rcs(mean_PM25, 3)+ Gender + AGE_BIN,
 #                         family = Gamma(),
@@ -865,12 +866,18 @@ rms_fit_PM25_glm <- glm(detrend_counts ~ rcs(detrend_PM25, 3),
                         family = poisson(),
                         data = AQ_HEALTH_pos, x=T, y=T)
 
-summary(rms_fit_PM25_glm)
 
+summary(rms_fit_PM25_glm)
+coefficients(rms_fit_PM25_glm)
+
+
+#########################
+#### plot ###############
+#########################
 
 par(mar=c(6,10,3,5))
 
-
+# plot this later on (first make statistics calculations below)
 termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=.05,
           se.type="polygon",  yscale="exponential", log="y",
           ylab=rep(" ", times=3),
@@ -888,6 +895,7 @@ termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=
 
 
 abline(h=1, col="red", lty=3, lwd=2)
+abline(h=1.1, col="red", lty=3, lwd=2)
 abline(v= 45, col="red", lty=3, lwd=2)
 abline(v= 20, col="blue", lty=3, lwd=2)
 
@@ -898,6 +906,8 @@ abline(v = 32, col ="black", lty=1, lwd=3)
 ymin <- min(exp(0.4))
 ymax <- max(exp(-0.4))
 x_val <- 0:100
+
+# run code below before plotting the following lines #############
 
 par(new=TRUE)
 plot(x_val, line_eq + 0.085, ylim=range(c(ymin, ymax)), axes = F, xlab = "", ylab = "",
@@ -962,8 +972,6 @@ limit_PM25 <- (line_eq [ind_intersection ]- xxx$coefficients[1])/xxx$coefficient
 ########################################################################
 ########################################################################
 
-
-
 # summary(rms_fit_PM25_glm) # display results
 # anova(rms_fit_PM25_glm)
 
@@ -985,7 +993,6 @@ AAA <- cbind(AQ_HEALTH_pos$detrend_PM25, tms, lower_CI, upper_CI)
 colnames(AAA) <- c("detrend_PM25", "RR", "Lower_CI", "Upper_CI")
 
 
-
 plot <- ggplot(AAA, aes(detrend_PM25, RR)) + 
   theme_bw() +
   geom_line(aes(y = RR, col = "RR"), alpha=1, col="red") +
@@ -1000,6 +1007,41 @@ plot <- ggplot(AAA, aes(detrend_PM25, RR)) +
         axis.text.y  = element_text(angle=0, vjust=0.5, size=7, colour = "black")) +
   ylim(0.8, 1.4)  
 plot
+
+
+###############################################################################
+# fit the curve with a polynomial and extract all the possible coefficients ###
+
+model <- lm(RR ~ detrend_PM25 + I(detrend_PM25^2) + I(detrend_PM25^3), data = AAA)
+coeff <- model$coefficients
+intercept <- coeff[1]
+a <- coeff[2]
+b <- coeff[3]
+c <- coeff[4]
+
+# modelled curve
+modelled_curve <- intercept + a*(AAA$detrend_PM25) +
+                              b*(AAA$detrend_PM25)^2 +
+                              c*(AAA$detrend_PM25)^3
+
+MODELLED <- as.data.frame(cbind(modelled_curve, AAA$detrend_PM25))
+colnames(MODELLED) <- c("modelled", "PM25")
+# plot with ggplot
+
+plot <- ggplot(MODELLED, aes(PM25, modelled)) + 
+  theme_bw() +
+  geom_line(aes(y = modelled, col = "modelled"), alpha=1, col="red") +
+  theme(legend.position="none") + 
+  theme(strip.text = element_text(size = 8)) + 
+  ylab(expression(paste("Relative Risk"))) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=12, colour = "black", face="bold")) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=13),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=7, colour = "black")) +
+  ylim(0.8, 1.4)  
+plot
+
+
 
 
 # filter only RR > 1
