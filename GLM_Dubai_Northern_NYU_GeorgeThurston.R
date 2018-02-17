@@ -39,6 +39,7 @@ other_clinics_2013_2016 <- other_clinics_2013_2016 %>%
          Date = date(DateTime),
          year = year(DateTime))
 
+
 # rename Person- MPI & Diagnosis column
 colnames(other_clinics_2013_2016)[2] <- "Person_MPI"
 colnames(other_clinics_2013_2016)[12] <- "Diagnosis_Description"
@@ -989,6 +990,10 @@ library(astsa)
 health_data <- health_data %>%
   left_join(PM25_all, c("Date"))
 
+# add time variable to data. Weekday has been chosen as time variable
+health_data <- health_data %>%
+  mutate(time = wday(Date))
+
 
 health_data <- health_data %>%
   filter(detrend_counts > 0)
@@ -1008,7 +1013,7 @@ summary(cb)
 # Introduce dummy variables (missing rh in my data!!!) ###
 ##########################################################
 
-health_data$Hot.Humid[health_data$Temp > 85 & health_data$RH > 75] <- 1
+health_data$Hot.Humid[health_data$Temp > 29.4 & health_data$RH > 75] <- 1
 # assign 0 value to all NA Hot.Humid data
 health_data$Hot.Humid[is.na(health_data$Hot.Humid)] <- 0
 
@@ -1038,6 +1043,7 @@ health_data$Temp_3day[is.na(health_data$Temp_3day)] <- 22.7
 
 # replace NA RH values with 64.5 %
 health_data$RH_3day[is.na(health_data$RH_3day)] <- 64.5
+health_data$RH[is.na(health_data$RH)] <- 64.5
 
 
 
@@ -1048,33 +1054,38 @@ health_data$RH_3day[is.na(health_data$RH_3day)] <- 64.5
 #                ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid, 
 #              family=poisson(), health_data)
 
-model <- glm(detrend_counts ~ cb + ns(Date,20)+ health_data$d_o_w + ns(Temp, 6) +
+model <- glm(detrend_counts ~ cb + ns(time,7)+ health_data$d_o_w + ns(Temp, 6) +
                ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid, 
              family=poisson(), health_data)
 
 summary(model)
 
-# modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25 +ns(Date,20)+
+# modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25 +ns(time,20)+
 #               health_data$d_o_w +health_data$holidays + 
 #               ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,
 #             family=poisson(),health_data)
 
-modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25 +ns(Date,20)+
+modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25  + ns(time,6)+
               health_data$d_o_w + 
               ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,
             family=poisson(),health_data)
 
-modx <- glm(detrend_counts ~ mean_PM25 +ns(Date,20)+
+# modx <- glm(detrend_counts ~ rcs(mean_PM25, 3),
+#             family=poisson(),health_data, na.action = na.exclude)
+
+# modx <- glm(detrend_counts ~ mean_PM25,
+#             family=poisson(),health_data, na.action = na.exclude)
+
+
+modx <- glm(detrend_counts ~ ns(mean_PM25,3) + ns(time,6)+
               health_data$d_o_w + 
-              ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3)+ Hot.Humid,
-            family=poisson(),health_data, na.action = na.exclude)
-
-modx <- glm(detrend_counts ~ rcs(mean_PM25, 3),
+              ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3) + Hot.Humid,
             family=poisson(),health_data, na.action = na.exclude)
 
 
 
 
+se = TRUE   # standard error
 predAll <- predict(modx, type = "terms", se.fit = se)
 tms <- predAll$fit[,1]
 tms <- exp(tms)
@@ -1101,90 +1112,24 @@ plot <- ggplot(AAA, aes(mean_PM25, RR)) +
   theme(axis.title.x=element_blank(),
         axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=12, colour = "black", face="bold")) +
   theme(axis.title.y = element_text(face="bold", colour="black", size=13),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=7, colour = "black")) +
-  ylim(0.8, 1.4)  
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=12, colour = "black")) +
+  ylim(0.8, 1.4) +
+  geom_hline(yintercept = 1) +
+  ggtitle("glm(detrend_counts ~ mean_PM25 + ns(time,6)+
+              health_data$d_o_w + ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3),
+          family=poisson(),health_data)")
 plot
 
 
+output_folder <- "D:/R_processing/plots_new/"
+png(paste0(output_folder,"RR_multinear regression.jpg"),
+    width = 1700, height = 1050, units = "px", pointsize = 30,
+    bg = "white", res = 150)
+print(plot)
+dev.off()
 
-#########################################################################################
-#########################################################################################
-health_data_AAA <- health_data[!is.na(health_data$mean_PM25),]
-
-rms_fit_PM25_glm <- glm(detrend_counts ~ rcs(mean_PM25, 3), family = poisson(),
-                        data = health_data_AAA, x=T, y=T)
-summary(rms_fit_PM25_glm)
-
-#### find treshold value where RR == 1
-se = TRUE   # standard error
-which.terms <- terms
-
-
-{terms <- if (is.null(terms))
-  predict(rms_fit_PM25_glm, type = "terms", se.fit = se)
-tms <- as.matrix(if (se)
-  terms$fit
-  else terms)}
-
-
-# check values above RR = 1
-tms <- exp(tms)  # make data exponential
-tms <- as.data.frame(tms)
-colnames(tms) <- c("RR")
-
-AAA <- cbind(health_data_AAA$mean_PM25, tms)
-
-####################################
-#### conficence interval (95%) #####
-####################################
-
-predAll <- predict(rms_fit_PM25_glm, type = "terms", se.fit = se)
-upper_CI =  exp(predAll$fit + 1.96 *  predAll$se.fit)
-lower_CI = exp(predAll$fit - 1.96 * predAll$se.fit)
-
-AAA <- cbind(health_data_AAA$mean_PM25, tms, lower_CI, upper_CI)
-colnames(AAA) <- c("mean_PM25", "RR", "Lower_CI", "Upper_CI")
-
-# save Responese curve with confidence interval
-getwd()
-# write.csv(AAA, "Response_Dubai_Northern_Emirates.csv")
-
-
-##############################
-#### exposure curve ##########
-##############################
-
-plot <- ggplot(AAA, aes(mean_PM25, RR)) + 
-  theme_bw() +
-  geom_line(aes(y = RR, col = "RR"), alpha=1, col="red") +
-  geom_line(aes(y = Lower_CI, col = "Lower_CI"), alpha=1, col="blue") +
-  geom_line(aes(y = Upper_CI, col = "Upper_CI"), alpha=1, col="blue") + 
-  theme(legend.position="none") + 
-  theme(strip.text = element_text(size = 8)) + 
-  ylab(expression(paste("Relative Risk"))) +
-  theme(axis.title.x=element_blank(),
-        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=12, colour = "black", face="bold")) +
-  theme(axis.title.y = element_text(face="bold", colour="black", size=13),
-        axis.text.y  = element_text(angle=0, vjust=0.5, size=7, colour = "black")) +
-  ylim(0.8, 1.4)  
-plot
-
-
-
-# par(mar=c(6,10,3,5))
-# 
-# termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=.05,
-#           se.type="polygon",  yscale="exponential", log="y",
-#           # ylab=rep("Relative Risk", times=3),
-#           ylab = "",
-#           xlab = "",
-#           cex.lab=2, cex.axis=2.5,  cex.main = 4, ylim = c(-0.4, 0.4), # ylim = c(-0.2, 0.6) , #ylim = c(-0.2, 0.4),# ,   
-#           cex.lab=2, cex.axis=2.5,  cex.main = 2, las = 1, font=2,
-#           col.se=rgb(.2,.2,1,.4), col.term="black", lwd.term = 2)
-# 
-# 
-# abline(h=1, col="red", lty=1, lwd=2)
-
+################################################
+################################################
 
 #install.packages("Epi")
 library(Epi)
@@ -1213,7 +1158,7 @@ for(i in 0:5) {
   #              ns(RH,3)+ ns(RH_3day, 3)+ Hot.Humid, 
   #            family=quasipoisson(),health_data,  na.action = na.exclude)
   
-  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$Date,20)+ 
+  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$time,6)+ 
                health_data$d_o_w + ns(Temp, 6)+ ns(Temp_3day, 6) +
                ns(RH,3)+ ns(RH_3day, 3)+ Hot.Humid, 
              family=quasipoisson(), health_data,  na.action = na.exclude)
@@ -1227,7 +1172,7 @@ tablag
 
 
 
-plot(0:5,0:5,type="n",ylim=c(0.99,1.02),main="Lag vs. RR (Annual)", 
+plot(0:5,0:5,type="n",ylim=c(0.99,1.01),main="Lag vs. RR (DUBAI - Northern Emirates)", 
      xlab="Lag (days)",ylab="RR and 95%CI per 10ug/m3 pm increase")
 abline(h=1)
 arrows(0:5,tablag[,2],0:5,tablag[,3],length=0.05,angle=90,code=3)
@@ -1253,7 +1198,7 @@ for(i in 0:5) {
   #            family=quasipoisson(), health_data,  na.action = na.exclude)
   
   
-  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$Date,20)+ 
+  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$time,6)+ 
                health_data$d_o_w + ns(Temp, 6)+ ns(Temp_3day, 6) +
                ns(RH,3)+ ns(RH_3day, 3)+ Hot.Humid, 
              family=quasipoisson(), health_data,  na.action = na.exclude)
@@ -1270,7 +1215,7 @@ tab <- rbind(tab1,tablag)
 tab
 
 
-plot(-5:5,-5:5,type="n",ylim=c(0.98,1.05),main="Lag vs. RR (Monsoon-Excluding EID and RAMADAN Data)", 
+plot(-5:5,-5:5,type="n",ylim=c(0.995,1.005),main="Lag vs. RR (holidays included)", 
      xlab="Lag (days)",ylab="RR and 95%CI per 10ug/m3 pm increase")
 abline(h=1)
 arrows(-5:5,tab[,2],-5:5,tab[,3],length=0.05,angle=90,code=3)

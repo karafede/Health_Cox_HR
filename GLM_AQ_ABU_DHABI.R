@@ -917,7 +917,7 @@ plot(x_val, line_eq + 0.085, ylim=range(c(ymin, ymax)), axes = F, xlab = "", yla
 ###################################################################
 
 
-#### fine treshold value where RR == 1
+#### find treshold value where RR == 1
 se = TRUE   # standard error
 which.terms <- terms
 
@@ -992,6 +992,9 @@ lower_CI = exp(predAll$fit - 1.96 * predAll$se.fit)
 AAA <- cbind(AQ_HEALTH_pos$detrend_PM25, tms, lower_CI, upper_CI)
 colnames(AAA) <- c("detrend_PM25", "RR", "Lower_CI", "Upper_CI")
 
+# save Responese curve with confidence interval
+getwd()
+write.csv(AAA, "Response_Curve_Abu_Dhabi.csv")
 
 plot <- ggplot(AAA, aes(detrend_PM25, RR)) + 
   theme_bw() +

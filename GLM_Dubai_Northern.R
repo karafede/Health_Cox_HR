@@ -321,7 +321,6 @@ health_data <- health_data %>%
 # quick plot ######################################
 
 
-
 jpeg('D:/R_processing/plots/Dubai_Northern_Clinics_patients_respiratory.jpg',   
      quality = 100, bg = "white", res = 200, width = 13, height = 7, units = "in")
 par(mar=c(4, 10, 9, 2) + 0.3)
@@ -412,8 +411,6 @@ health_data_annual <- health_data %>%
   group_by(year) %>%
   summarise(annual_daily_counts = mean(sum_patients, na.rm = TRUE))
 ANNUAL_DAILY_COUNTS <- mean(health_data_annual$annual_daily_counts)
-
-
 
 
 # make an average of all daily concentrations over the years (seasonality)
@@ -640,7 +637,7 @@ EAD_AQ_2015 <- read.csv(paste0(dir_AQ, "/","database_EAD_2015_daily_mean.csv"))[
 EAD_AQ_2016 <- read.csv(paste0(dir_AQ, "/","database_EAD_2016_daily_mean.csv"))[-1]
 
 
-# bind data together
+# bind data together BUT NO Abu Dhabi data
 UAE_AQ <- rbind( # EAD_AQ_2013, EAD_AQ_2014, EAD_AQ_2015, EAD_AQ_2016,
                 DM_AQ_2013, DM_AQ_2014, DM_AQ_2015, DM_AQ_2016,
                 NCMS_AQ_2013, NCMS_AQ_2014, NCMS_AQ_2015, NCMS_AQ_2016)
@@ -1102,6 +1099,33 @@ par(oldpar)
 dev.off()
 
 
+curve_admissions_PM25 <- predict(loess(sum_patients ~ xxx ,SUM_PATIENTS_BINS),
+                                 SUM_PATIENTS_BINS$xxx)
+
+# xxx is the PM2.5 concentration
+
+fit_admission_PM25 <- lm(sum_patients ~ xxx, data=SUM_PATIENTS_BINS)
+summary(fit_admission_PM25) 
+
+# show results
+# Call:
+#   lm(formula = sum_patients ~ xxx, data = SUM_PATIENTS_BINS)
+# 
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -9.5865 -3.1542  0.0537  3.2174  8.9955 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept) 41.48075    3.39879  12.205 2.49e-07 ***
+#   xxx          0.20847    0.04618   4.514  0.00112 ** 
+#   ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 5.522 on 10 degrees of freedom
+# Multiple R-squared:  0.6708,	Adjusted R-squared:  0.6379 
+# F-statistic: 20.38 on 1 and 10 DF,  p-value: 0.001118
+
 
 
 
@@ -1133,10 +1157,34 @@ rms_fit_PM25_glm <- glm(detrend_counts ~ rcs(detrend_PM25, 3), family = poisson(
 summary(rms_fit_PM25_glm)
 
 
+# Call:
+#   glm(formula = detrend_counts ~ rcs(detrend_PM25, 3), family = poisson(), 
+#       data = AQ_HEALTH_pos, x = T, y = T)
+# 
+# Deviance Residuals: 
+#   Min      1Q  Median      3Q     Max  
+# -9.926  -1.882  -0.028   1.597   9.995  
+# 
+# Coefficients:
+#   Estimate Std. Error z value Pr(>|z|)    
+# (Intercept)                       3.8907142  0.0318635 122.106   <2e-16 ***
+#   rcs(detrend_PM25, 3)detrend_PM25  0.0010975  0.0008199   1.339   0.1807    
+# rcs(detrend_PM25, 3)detrend_PM25' 0.0020879  0.0008892   2.348   0.0189 *  
+# ---
+# Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# (Dispersion parameter for poisson family taken to be 1)
+# 
+#     Null deviance: 9265.4  on 997  degrees of freedom
+# Residual deviance: 9192.1  on 995  degrees of freedom
+# AIC: Inf
+# 
+# Number of Fisher Scoring iterations: 4
+
 
 par(mar=c(6,10,3,5))
 
-
+# plot this later on (first make statistics calculations below)
 termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=.05,
           se.type="polygon",  yscale="exponential", log="y",
           # ylab=rep("Relative Risk", times=3),
@@ -1152,9 +1200,11 @@ termplot2(rms_fit_PM25_glm, se=T, rug.type="density", rug=T, density.proportion=
           col.se=rgb(.2,.2,1,.4), col.term="black", lwd.term = 2)
 
 
-abline(h=1, col="red", lty=3, lwd=2)
+abline(h=1, col="red", lty=1, lwd=2)
 abline(v= 48, col="red", lty=3, lwd=2)
 abline(v= 20, col="blue", lty=3, lwd=2)
+
+
 
 abline(h = y_min, col="red", lty=1, lwd=2)
 abline(v = 30, col ="black", lty=1, lwd=3)
