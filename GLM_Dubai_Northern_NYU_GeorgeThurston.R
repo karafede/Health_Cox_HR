@@ -123,10 +123,10 @@ INJURIES_other_clinics_2013_2016 <- other_clinics_2013_2016 %>%
 INJURIES_other_clinics_2013_2016$disease <- "INJURIES"
 
 # combine in an unique dataset
-health_data <- rbind(RESPIRATORY_other_clinics_2013_2016,
-                     CARDIO_other_clinics_2013_2016,
-#                     CONTROLS_other_clinics_2013_2016,
-                     INJURIES_other_clinics_2013_2016)
+health_data <- rbind(RESPIRATORY_other_clinics_2013_2016)
+                   #  CARDIO_other_clinics_2013_2016)
+                   #  CONTROLS_other_clinics_2013_2016,
+                    # INJURIES_other_clinics_2013_2016)
 
 
 health_data <- health_data %>%
@@ -435,6 +435,7 @@ summarise(daily_counts_seasons = mean(sum_patients, na.rm = TRUE))
 counts_season <- rbind(health_annual_mean[2:365, ],    # 2013
                        health_annual_mean[1:365, ],    # 2014
                        health_annual_mean[1:284, ])    # 2015
+# check the total sum!
 
 counts_season <- as.data.frame(counts_season)
 
@@ -990,9 +991,13 @@ library(astsa)
 health_data <- health_data %>%
   left_join(PM25_all, c("Date"))
 
-# add time variable to data. Weekday has been chosen as time variable
-health_data <- health_data %>%
-  mutate(time = wday(Date))
+# add time variable to data (this is the JULIAN day????)
+ health_data$time <- 1:nrow(health_data)
+ 
+ health_data <- health_data %>%
+   mutate(year = year(Date),
+          month = month(Date),
+          day = day(Date))
 
 
 health_data <- health_data %>%
@@ -1010,7 +1015,6 @@ cb <- crossbasis(health_data$mean_PM25, lag=c(0,5),argvar=list(fun="lin"),
 summary(cb)
 
 ##########################################################
-# Introduce dummy variables (missing rh in my data!!!) ###
 ##########################################################
 
 health_data$Hot.Humid[health_data$Temp > 29.4 & health_data$RH > 75] <- 1
@@ -1019,16 +1023,17 @@ health_data$Hot.Humid[is.na(health_data$Hot.Humid)] <- 0
 
 # assign name of days of the week to each date
 
-health_data$dow <- weekdays(as.Date(health_data$Date))
+health_data$dow <- weekdays(as.Date(health_data$Date), abbreviate = T)
+
 
 # WORKING days of the week (arabic countries)
-health_data$d_o_w[health_data$dow =="Friday"] <- 1
-health_data$d_o_w[health_data$dow =="Saturday"] <- 0
-health_data$d_o_w[health_data$dow =="Sunday"] <- 0
-health_data$d_o_w[health_data$dow =="Monday"] <- 0
-health_data$d_o_w[health_data$dow =="Tuesday"] <- 0
-health_data$d_o_w[health_data$dow =="Wednesday"] <- 0
-health_data$d_o_w[health_data$dow =="Thursday"] <- 0
+# health_data$d_o_w[health_data$dow =="Friday"] <- 1
+# health_data$d_o_w[health_data$dow =="Saturday"] <- 0
+# health_data$d_o_w[health_data$dow =="Sunday"] <- 0
+# health_data$d_o_w[health_data$dow =="Monday"] <- 0
+# health_data$d_o_w[health_data$dow =="Tuesday"] <- 0
+# health_data$d_o_w[health_data$dow =="Wednesday"] <- 0
+# health_data$d_o_w[health_data$dow =="Thursday"] <- 0
 
 
 # 3 DAYS MOVING AVERAGE FOR TEMP & RH 
@@ -1045,7 +1050,9 @@ health_data$Temp_3day[is.na(health_data$Temp_3day)] <- 22.7
 health_data$RH_3day[is.na(health_data$RH_3day)] <- 64.5
 health_data$RH[is.na(health_data$RH)] <- 64.5
 
-
+# make all data integer
+health_data$detrend_counts <- as.integer(health_data$detrend_counts)
+health_data$mean_PM25 <- as.integer(health_data$mean_PM25)
 
 
 
@@ -1054,7 +1061,7 @@ health_data$RH[is.na(health_data$RH)] <- 64.5
 #                ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid, 
 #              family=poisson(), health_data)
 
-model <- glm(detrend_counts ~ cb + ns(time,7)+ health_data$d_o_w + ns(Temp, 6) +
+model <- glm(detrend_counts ~ cb + ns(time,12)+ health_data$dow + ns(Temp, 6) +
                ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid, 
              family=poisson(), health_data)
 
@@ -1065,10 +1072,15 @@ summary(model)
 #               ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,
 #             family=poisson(),health_data)
 
-modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25  + ns(time,6)+
-              health_data$d_o_w + 
-              ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,
+modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25  + ns(time,12)+
+              health_data$dow + ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3),
             family=poisson(),health_data)
+
+summary(modx)
+# residual plot
+# plot(modx)
+plot(modx$residuals)
+
 
 # modx <- glm(detrend_counts ~ rcs(mean_PM25, 3),
 #             family=poisson(),health_data, na.action = na.exclude)
@@ -1077,12 +1089,10 @@ modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25  + ns(time,6)+
 #             family=poisson(),health_data, na.action = na.exclude)
 
 
-modx <- glm(detrend_counts ~ ns(mean_PM25,3) + ns(time,6)+
-              health_data$d_o_w + 
-              ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3) + Hot.Humid,
-            family=poisson(),health_data, na.action = na.exclude)
-
-
+# modx <- glm(detrend_counts ~ ns(mean_PM25,3) + ns(time,7)+
+#               health_data$d_o_w + 
+#               ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3) + Hot.Humid,
+#             family=poisson(),health_data, na.action = na.exclude)
 
 
 se = TRUE   # standard error
@@ -1140,7 +1150,8 @@ library(dplyr)
 
 ###Annual
 
-# health_data$mean_PM25 <- health_data$mean_PM25/10
+# RR as per 10 ug/m3
+health_data$mean_PM25 <- health_data$mean_PM25/10
 
 # positive lags
 tablag <- matrix(NA, 5+1, 3, dimnames = list(paste("Lag",0:5),
@@ -1158,9 +1169,9 @@ for(i in 0:5) {
   #              ns(RH,3)+ ns(RH_3day, 3)+ Hot.Humid, 
   #            family=quasipoisson(),health_data,  na.action = na.exclude)
   
-  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$time,6)+ 
-               health_data$d_o_w + ns(Temp, 6)+ ns(Temp_3day, 6) +
-               ns(RH,3)+ ns(RH_3day, 3)+ Hot.Humid, 
+  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$time,12)+ 
+               health_data$dow + ns(Temp, 6)+ ns(Temp_3day, 6) +
+               ns(RH,3)+ ns(RH_3day, 3), 
              family=quasipoisson(), health_data,  na.action = na.exclude)
   
   
@@ -1172,7 +1183,7 @@ tablag
 
 
 
-plot(0:5,0:5,type="n",ylim=c(0.99,1.01),main="Lag vs. RR (DUBAI - Northern Emirates)", 
+plot(0:5,0:5,type="n",ylim=c(0.95,1.03),main="Lag vs. RR (DUBAI - Northern Emirates)", 
      xlab="Lag (days)",ylab="RR and 95%CI per 10ug/m3 pm increase")
 abline(h=1)
 arrows(0:5,tablag[,2],0:5,tablag[,3],length=0.05,angle=90,code=3)
@@ -1180,7 +1191,6 @@ points(0:5,tablag[,1],pch=19)
 
 ### Lead Plot
 
-# health_data$mean_PM25 <- health_data$mean_PM25/10
 
 # negative lags
 tablag1 <- matrix(NA,5+1,3,dimnames=list(paste("Lag",0:-5),
@@ -1198,9 +1208,9 @@ for(i in 0:5) {
   #            family=quasipoisson(), health_data,  na.action = na.exclude)
   
   
-  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$time,6)+ 
-               health_data$d_o_w + ns(Temp, 6)+ ns(Temp_3day, 6) +
-               ns(RH,3)+ ns(RH_3day, 3)+ Hot.Humid, 
+  mod <- glm(health_data$detrend_counts ~ PM25lag + ns(health_data$time,12)+ 
+               health_data$dow + ns(Temp, 6)+ ns(Temp_3day, 6) +
+               ns(RH,3)+ ns(RH_3day, 3),
              family=quasipoisson(), health_data,  na.action = na.exclude)
   
   
@@ -1215,7 +1225,7 @@ tab <- rbind(tab1,tablag)
 tab
 
 
-plot(-5:5,-5:5,type="n",ylim=c(0.995,1.005),main="Lag vs. RR (holidays included)", 
+plot(-5:5,-5:5,type="n",ylim=c(0.95,1.05),main="Lag vs. RR (holidays included)", 
      xlab="Lag (days)",ylab="RR and 95%CI per 10ug/m3 pm increase")
 abline(h=1)
 arrows(-5:5,tab[,2],-5:5,tab[,3],length=0.05,angle=90,code=3)
