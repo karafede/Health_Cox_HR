@@ -345,6 +345,15 @@ max <- as.Date("2015-10-11")
 health_data_sum <- health_data %>%
   group_by(Date) %>%
   summarise(sum_patients = sum(sum_patients, na.rm = TRUE))
+
+# AVERAGE count per day #############
+health_data_AVG <- health_data %>% 
+  group_by(Date) %>%
+  summarise(AVG_patients = mean(sum_patients, na.rm = TRUE))
+
+
+health_data_AVG_day <- health_data_AVG %>%
+  summarise(mean_day = mean(AVG_patients, na.rm = TRUE))
   
 
 plot <- ggplot(health_data_sum, aes(Date, sum_patients)) + 
@@ -1208,6 +1217,44 @@ png(paste0(output_folder,"RR_glm_RESPIRATORY.jpg"),
     bg = "white", res = 150)
 print(plot)
 dev.off()
+
+
+
+#################################################
+#### residuals ##################################
+
+
+modx <- glm(detrend_counts ~ cb + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+              ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)
+
+summary(modx)  # is does not give AIC (use poisson() to get value for AIC)
+
+acf2(residuals(modx))
+res <- residuals(modx, type="deviance")
+summary(res)
+plot(res,ylim=c(-10,10),pch=19,cex=0.7,col=grey(0.6),
+     main="Residuals over time glm(detrend_counts ~ cb + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+              ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)",ylab="Deviance residuals",xlab="date")
+abline(h=0,lty=2,lwd=2)
+
+
+
+
+modx <- glm(detrend_counts ~ mean_PM25 + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+              ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)
+
+summary(modx)  # is does not give AIC (use poisson() to get value for AIC)
+
+acf2(residuals(modx))
+res <- residuals(modx, type="deviance")
+summary(res)
+plot(res,ylim=c(-10,10),pch=19,cex=0.7,col=grey(0.6),
+     main="Residuals over time (glm(detrend_counts ~ mean_PM25 + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+     ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)",ylab="Deviance residuals",xlab="date")
+abline(h=0,lty=2,lwd=2)
+
+
+
 
 ################################################
 ################################################

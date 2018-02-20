@@ -901,11 +901,11 @@ health_data$mean_PM25 <- as.integer(health_data$mean_PM25)
 #              family=poisson(), health_data)
 
 
-model <- glm(sum_patients ~ cb + ns(time,12)+ health_data$dow + ns(Temp, 6) + health_data$holidays +
-               ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid, 
+modx <- glm(sum_patients ~ cb + ns(time,12)+ health_data$dow + ns(Temp, 6) + health_data$holidays +
+               ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3),
              family=poisson(), health_data)
 
-summary(model)
+summary(modx)
 
 # modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25 +ns(time,20)+
 #               health_data$d_o_w +health_data$holidays + 
@@ -979,9 +979,44 @@ png(paste0(output_folder,"RR_glm_CONTROL.jpg"),
 print(plot)
 dev.off()
 
-################################################
-################################################
 
+#################################################
+#### residuals ##################################
+
+
+modx <- glm(sum_patients ~ cb + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+              ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)
+
+summary(modx)  # is does not give AIC (use poisson() to get value for AIC)
+
+acf2(residuals(modx))
+res <- residuals(modx, type="deviance")
+summary(res)
+plot(res,ylim=c(-10,10),pch=19,cex=0.7,col=grey(0.6),
+     main="Residuals over time glm(sum_patients ~ cb + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+     ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)",ylab="Deviance residuals",xlab="date")
+abline(h=0,lty=2,lwd=2)
+
+
+
+modx <- glm(sum_patients ~ mean_PM25 + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+              ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)
+
+summary(modx)  # is does not give AIC (use poisson() to get value for AIC)
+
+acf2(residuals(modx))
+res <- residuals(modx, type="deviance")
+summary(res)
+plot(res,ylim=c(-10,10),pch=19,cex=0.7,col=grey(0.6),
+     main="Residuals over time (glm(sum_patients ~ mean_PM25 + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+     ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)",ylab="Deviance residuals",xlab="date")
+abline(h=0,lty=2,lwd=2)
+
+
+
+
+################################################
+################################################
 #install.packages("Epi")
 library(Epi)
 library(splines)
