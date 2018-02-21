@@ -788,6 +788,114 @@ health_data <- health_data %>%
   filter(sum_patients > 0)
 health_data <- health_data[!is.na(health_data$mean_PM25),]
 
+###################################################################
+#### find relation between sum patiensts and PM25 concentration ###
+###################################################################
+
+AQ_HEALTH_SUMMARY_STATS <- health_data %>%
+  group_by(Date) %>%
+  summarise(mean_PM25 = mean(mean_PM25),
+            sum_patients = sum(sum_patients))
+
+BBB <- NULL
+xxx= seq(from = 10, to = 150, by =10)
+xxx= seq(from = 10, to = 150, by =5)
+
+
+for (i in 1:length(xxx)){
+  #i=2
+  if (i==1){
+    AAA <- AQ_HEALTH_SUMMARY_STATS %>%
+      filter(mean_PM25 <= xxx[i])  %>%
+      summarise(sum_patients = sum(sum_patients))
+    num_day <- AQ_HEALTH_SUMMARY_STATS %>%
+      filter(mean_PM25 <= xxx[i]) 
+    num_day<-nrow(num_day)
+    # normalise
+    AAA<- AAA/num_day
+    
+  }else{
+    AAA <- AQ_HEALTH_SUMMARY_STATS %>%
+      filter(mean_PM25 <= xxx[i] & mean_PM25 >= xxx[i-1]) %>%
+      summarise(sum_patients = sum(sum_patients))
+    num_day <- AQ_HEALTH_SUMMARY_STATS %>%
+      filter(mean_PM25 <= xxx[i] & mean_PM25 >= xxx[i-1]) 
+    num_day<-nrow(num_day)
+    # normalise
+    AAA<- AAA/num_day
+  }
+  BBB<- rbind(BBB, AAA)
+  
+}
+
+
+SUM_PATIENTS_BINS <- as.data.frame(cbind(xxx, BBB))
+SUM_PATIENTS_BINS <- na.omit(SUM_PATIENTS_BINS)
+
+
+# plot
+
+p_health <- ggplot(SUM_PATIENTS_BINS, aes(xxx, sum_patients)) + 
+  theme_bw() +
+  geom_point(size = 5) +
+  geom_smooth() +
+  ylim(0, 10) +
+  ggtitle("(INJURIUES) - number of patients per day (Dubai and Northern Emirates, 2013-2015)") + 
+  theme(plot.title = element_text(lineheight=.8, face="bold", size = 20, hjust = 0.5)) +
+  xlab("sum patients per day") +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=32),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=32)) +
+  theme(axis.title.x = element_text(face="bold", colour="black", size=32),
+        axis.text.x  = element_text(angle=0, vjust=0.5, size=32)) +
+  xlab(expression(paste(PM[2.5], " (µg/",m^3, ")", " "))) +
+  theme(legend.position="none") + 
+  ylab("average admissions per day") +
+  xlim(5, 150)
+#  ylim(0, 750) 
+p_health
+
+
+output_folder <- "D:/R_processing/plots_new/"
+png(paste0(output_folder,"CONTROL_Dubai_Northern_Clinics_counts_vs_PM25.jpg"),
+    width = 1900, height = 1050, units = "px", pointsize = 30,
+    bg = "white", res = 150)
+print(p_health)
+dev.off()
+
+
+curve_admissions_PM25 <- predict(loess(sum_patients ~ xxx ,SUM_PATIENTS_BINS),
+                                 SUM_PATIENTS_BINS$xxx)
+
+# xxx is the PM2.5 concentration
+
+fit_admission_PM25 <- lm(sum_patients ~ xxx, data=SUM_PATIENTS_BINS)
+summary(fit_admission_PM25) 
+
+# Call:
+#   lm(formula = sum_patients ~ xxx, data = SUM_PATIENTS_BINS)
+# 
+# Residuals:
+#   Min      1Q  Median      3Q     Max 
+# -1.7181 -0.3621 -0.1199  0.2964  2.2991 
+# 
+# Coefficients:
+#   Estimate Std. Error t value Pr(>|t|)    
+# (Intercept)  4.827290   0.417811  11.554 2.65e-10 ***
+#   xxx         -0.001149   0.005346  -0.215    0.832    
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+# 
+# Residual standard error: 0.8829 on 20 degrees of freedom
+# Multiple R-squared:  0.002306,	Adjusted R-squared:  -0.04758 
+# F-statistic: 0.04622 on 1 and 20 DF,  p-value: 0.832
+
+
+
+
+
+####################################################################
+############## HEALTH ANALYSIS #####################################
+####################################################################
 
 
 # CREATING THE LAG in the PM2.5 data
