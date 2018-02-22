@@ -263,14 +263,164 @@ PM25_TREND_6_YEARS_no_outliers
 par(oldpar)
 dev.off()
 
+######################################################################
+# apply ARIMA model to determine predictions for the uear 2017 #######
+######################################################################
+
+# https://www.analyticsvidhya.com/blog/2015/12/complete-tutorial-time-series-modeling/
+
+# https://www.datascience.com/blog/introduction-to-forecasting-with-arima-in-r-learn-data-science-tutorials
+  
+
+library(ggplot2)
+library(forecast)
+library(tseries)
+
+
+# make a time-series
+
+PM25_ts = ts(PM25_all_mean[, c('mean_PM25_no_outliers')])
+
+# remove outliers
+PM25_all_mean$PM25_clean = tsclean(PM25_ts)
+str(PM25_all_mean)
+
+
+ggplot() +
+  geom_line(data = PM25_all_mean, aes(x = Date, y = PM25_clean)) + ylab('PM25_daily_mean')
+
+# get seasonality, trend and cycle
+
+# make movig averages (ma)
+# monthly moving average
+PM25_all_mean$ma_PM25 = ma(PM25_all_mean$PM25_clean, order=30) # every 30 days moving average using the clean count with no outliers 
+str(PM25_all_mean)
+
+
+ggplot() +
+  theme_bw() +
+  geom_line(data = PM25_all_mean, aes(x = Date, y = PM25_clean, colour = "PM25_daily_mean")) +
+  geom_line(data = PM25_all_mean, aes(x = Date, y = ma_PM25,   colour = "Monthly Moving Average"), size=1)  +
+  ylab('PM25_daily_mean')
+
+
+PM25_MOVING_AVG = ts(na.omit(PM25_all_mean$ma_PM25), frequency=30)
+# make a deseasonalized time-series
+decomp = stl(PM25_MOVING_AVG, s.window="periodic")
+# remove seasonality
+deseasonal_cnt <- seasadj(decomp)
+plot(decomp)
+
+
+# test stationarity of the time-series
+adf.test(PM25_MOVING_AVG, alternative = "stationary")
+
+
+# IF the p-value is too high....the time-serie of count_ma is NOT STATIONARY
+
+##################################################################
+# Step 5: Autocorrelations and Choosing Model Order ##############
+# correlation between a series and its lags
+Acf(PM25_MOVING_AVG, main='')
+# or 
+Pacf(PM25_MOVING_AVG, main='')
+
+# R plots 95% significance boundaries as blue dotted lines. 
+# There are significant autocorrelations with many lags in our bike series, as shown by the ACF plot below. 
+# therefore statistical properties are not constant over time.
+
+
+# Dickey-Fuller test
+
+# Usually, non-stationary series can be corrected by a simple transformation such as differencing. 
+# Differencing the series can help in removing its trend or cycles. The idea behind differencing is that, 
+# if the original data series does not have constant properties over time, then the change from one period to another might. 
+# The difference is calculated by subtracting one period's values from the previous period's values:
+
+# Plotting the differenced series, we see an oscillating pattern around 0 with no visible strong trend. 
+# This suggests that differencing of order 1 terms is sufficient and should be included in the model.
+
+# use the deseasonalized time-series
+count_d1 = diff(deseasonal_cnt, differences = 1)
+plot(count_d1)
+adf.test(count_d1, alternative = "stationary")
+
+
+# p-value is MUCH better now....the time-serie of count_ma is NOT STATIONARY
+
+# repeat the tests to determine whether a time-series is stationary
+
+Acf(count_d1, main='ACF for Differenced Series')
+Pacf(count_d1, main='PACF for Differenced Series')
+
+#################
+# ARIMA model ###
+#################
+
+# ARIMA(p, d, q)
+# p = number of lags (AR)
+# d = degree of differencing (I)
+# q = determines the number of terms to include in the model (MA)
+
+# use the deseasonalized time-series
+auto.arima(deseasonal_cnt, seasonal=FALSE)
+
+fit<-auto.arima(deseasonal_cnt, seasonal=FALSE)
+tsdisplay(residuals(fit), lag.max=100, main='(1,1,1) Model Residuals')
+
+# there is a clear pattern at lag or p == 7
+
+fit2 = arima(deseasonal_cnt, order=c(1,1,7))
+
+fit2
+
+tsdisplay(residuals(fit2), lag.max=100, main='Seasonal Model Residuals')
+
+
+# FORECAST
+# now let's FORECAST with the output of the ARIMA model (fit2)
+
+(fit <- arima(log(deseasonal_cnt), c(1, 1, 0),seasonal = list(order = c(1, 1, 0), period = 12)))  # 1 year
+
+
+pred <- predict(fit, n.ahead = 10*1)
+ts.plot(deseasonal_cnt,2.718^pred$pred, log = "y", lty = c(1,3))
+
+
+fit <- auto.arima(deseasonal_cnt)
+fcast <- forecast(fit, h = 50)
+plot(fcast)
+
+fit <- auto.arima(PM25_ts)
+fcast <- forecast(fit, h = 100)
+plot(fcast)
+
+fit <- arima(deseasonal_cnt, order = c(1,1,30))
+fcast <- forecast(fit, h = 50)
+plot(fcast)
+
+
+fit <- arima(PM25_ts, order = c(1,1,2))
+fcast <- forecast(fit, h = 50)
+plot(fcast)
 
 
 
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+##########################################################################################
+##########################################################################################
 ############ OLD plot ####################################################################
 ##########################################################################################
+##########################################################################################
+
 
 jpeg('D:/R_processing/plots/PM25_long_trend.jpg',
      quality = 100, bg = "white", res = 300, width = 14, height = 9, units = "in")
+
+
 par(mar=c(4, 10, 9, 2) + 0.3)
 oldpar <- par(las=1)
 
