@@ -1243,7 +1243,9 @@ health_data$RH[is.na(health_data$RH)] <- 64.5
 health_data$detrend_counts <- as.integer(health_data$detrend_counts)
 health_data$mean_PM25 <- as.integer(health_data$mean_PM25)
 
-
+# PM2.5 mean of the dataset 
+MEAN_PM25 <- health_data %>%
+  summarise(MEAN = mean(mean_PM25))
 
 # RUN THE GLM MODEL
 # model <- glm(detrend_counts ~ cb + ns(Date,20)+ health_data$d_o_w +health_data$holidays + ns(Date, 6) +
@@ -1261,7 +1263,7 @@ summary(model)
 #               ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,
 #             family=poisson(),health_data)
 
-modx <- glm(health_data$detrend_counts ~ ns(health_data$mean_PM25, 3)  + ns(time,12) + health_data$holidays + 
+modx <- glm(health_data$detrend_counts ~ ns(health_data$mean_PM25, 3)  + ns(time,20) + health_data$holidays + 
               health_data$dow + ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3),
             family=poisson(),health_data)
 
@@ -1365,6 +1367,57 @@ abline(h=0,lty=2,lwd=2)
 
 
 
+###############################################################################
+# fit the curve with a polynomial and extract all the possible coefficients ###
+
+model <- lm(RR ~ mean_PM25 + I(mean_PM25^2) + I(mean_PM25^3) + I(mean_PM25^4), data = AAA)
+coeff <- model$coefficients
+intercept <- coeff[1]
+a <- coeff[2]
+b <- coeff[3]
+c <- coeff[4]
+d <- coeff[5]
+
+# modelled curve
+modelled_curve <- intercept + a*(AAA$mean_PM25) +
+  b*(AAA$mean_PM25)^2 +
+  c*(AAA$mean_PM25)^3 + d*(AAA$mean_PM25)^4
+
+
+MODELLED <- as.data.frame(cbind(modelled_curve, AAA$mean_PM25))
+colnames(MODELLED) <- c("modelled", "PM25")
+# plot with ggplot
+
+plot <- ggplot(MODELLED, aes(PM25, modelled)) + 
+  theme_bw() +
+  geom_line(aes(y = modelled, col = "modelled"), alpha=1, col="red") +
+  theme(legend.position="none") + 
+  theme(strip.text = element_text(size = 8)) + 
+  ylab(expression(paste("Relative Risk"))) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x  = element_text(angle=0, vjust=0.5, hjust = 0.5, size=12, colour = "black", face="bold")) +
+  theme(axis.title.y = element_text(face="bold", colour="black", size=13),
+        axis.text.y  = element_text(angle=0, vjust=0.5, size=12, colour = "black")) +
+  ylim(0.8, 1.4) +
+  geom_hline(yintercept = 1) +
+  geom_vline(xintercept = 46, alpha = 1, col = "blue")
+plot
+
+
+
+
+# filter only RR > 1
+RR_1 <- AAA %>%
+  filter(RR >= 1)
+
+write.csv(RR_1, "D:/R_processing/RR_Dubai_Northern.csv")
+
+# number of mean daily hospital admissions
+AQ_HEALTH_mean <-  health_data %>%
+  summarise(mean_admissions = mean(sum_patients, na.rm = T))
+
+######################################################################################
+######################################################################################
 
 ################################################
 ################################################
