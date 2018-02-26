@@ -384,7 +384,6 @@ dev.off()
 
 ################################################################################
 ################################################################################
-############## DO NOT RUN THIS PART ############################################
 ################################################################################
 ################################################################################
 ################################################################################
@@ -1262,7 +1261,7 @@ summary(model)
 #               ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,
 #             family=poisson(),health_data)
 
-modx <- glm(health_data$detrend_counts ~ health_data$mean_PM25  + ns(time,12) + health_data$holidays + 
+modx <- glm(health_data$detrend_counts ~ ns(health_data$mean_PM25, 3)  + ns(time,12) + health_data$holidays + 
               health_data$dow + ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3),
             family=poisson(),health_data)
 
@@ -1316,7 +1315,7 @@ plot <- ggplot(AAA, aes(mean_PM25, RR)) +
         axis.text.y  = element_text(angle=0, vjust=0.5, size=12, colour = "black")) +
   ylim(0.8, 1.4) +
   geom_hline(yintercept = 1) +
-  ggtitle("glm(health_data$detrend_counts ~ health_data$mean_PM25  + ns(time,12) + health_data$holidays + 
+  ggtitle("glm(health_data$detrend_counts ~ ns(health_data$mean_PM25, 3)  + ns(time,12) + health_data$holidays + 
               health_data$dow + ns(Temp, 6)+ ns(Temp_3day, 6)+  ns(RH,3)+ ns(RH_3day, 3),
           family=poisson(),health_data)")
 plot
@@ -1351,7 +1350,7 @@ abline(h=0,lty=2,lwd=2)
 
 
 
-modx <- glm(detrend_counts ~ mean_PM25 + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
+modx <- glm(detrend_counts ~ ns(mean_PM25,3) + ns(time,12)+ health_data$dow +health_data$holidays + ns(Temp, 6)+
               ns(Temp_3day, 6)+ ns(RH,3)+ ns(RH_3day, 3)+ health_data$Hot.Humid,family=quasipoisson(),health_data)
 
 summary(modx)  # is does not give AIC (use poisson() to get value for AIC)
@@ -1465,17 +1464,19 @@ points(-5:5,tab[,1],pch=19)
 ###############################################################################
 # fit the curve with a polynomial and extract all the possible coefficients ###
 
-model <- lm(RR ~ mean_PM25 + I(mean_PM25^2) + I(mean_PM25^3), data = AAA)
+model <- lm(RR ~ mean_PM25 + I(mean_PM25^2) + I(mean_PM25^3) + I(mean_PM25^4), data = AAA)
 coeff <- model$coefficients
 intercept <- coeff[1]
 a <- coeff[2]
 b <- coeff[3]
 c <- coeff[4]
+d <- coeff[5]
 
 # modelled curve
 modelled_curve <- intercept + a*(AAA$mean_PM25) +
   b*(AAA$mean_PM25)^2 +
-  c*(AAA$mean_PM25)^3
+  c*(AAA$mean_PM25)^3 + d*(AAA$mean_PM25)^4
+
 
 MODELLED <- as.data.frame(cbind(modelled_curve, AAA$mean_PM25))
 colnames(MODELLED) <- c("modelled", "PM25")
@@ -1492,7 +1493,8 @@ plot <- ggplot(MODELLED, aes(PM25, modelled)) +
   theme(axis.title.y = element_text(face="bold", colour="black", size=13),
         axis.text.y  = element_text(angle=0, vjust=0.5, size=12, colour = "black")) +
   ylim(0.8, 1.4) +
-  geom_hline(yintercept = 1) 
+  geom_hline(yintercept = 1) +
+  geom_vline(xintercept = 46, alpha = 1, col = "blue")
 plot
 
 
